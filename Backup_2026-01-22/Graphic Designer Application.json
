@@ -1,0 +1,175 @@
+{
+  "updatedAt": "2026-01-17T08:23:13.266Z",
+  "createdAt": "2026-01-17T07:43:31.163Z",
+  "id": "m1UWg_PLAdWPANWeQY1ih",
+  "name": "Graphic Designer Application",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formId": "aQe0qb"
+      },
+      "type": "n8n-nodes-tallyforms.tallyTrigger",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        32
+      ],
+      "id": "6f957377-f109-484d-b428-ef7bb1c439fb",
+      "name": "Tally Trigger",
+      "webhookId": "8a4794e3-ee65-4c15-b8a0-b1823b3a8571",
+      "credentials": {
+        "tallyApi": {
+          "id": "SvK9vBIQFtlHwW3K",
+          "name": "Tally account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "jobs@pasovit.com",
+        "toEmail": "={{ $json.question_ZN8EkV.value }}",
+        "subject": "Pasovit Technologies - Round 1 task",
+        "html": "=\n<p> Hi {{ $json.question_2eXade.value }}, <br /><br />Thank you for your interest in the Graphic Designer role. As the next step in our evaluation process, we’re assigning you a <strong>practical design task</strong>. </p> <p> <strong>Before you start, it is mandatory that you read all instructions in the Google Doc linked below.</strong> This document contains the complete brief, expectations, and submission requirements. Missing any instruction will directly impact your evaluation. </p> <p> <strong>Task Instructions (Read Carefully):</strong><br /> <a href=\"https://docs.google.com/document/d/1oNNDTEdoZlCLs26byV2lnsC-TAXq25SPNo-jlF8_mqk/edit?usp=sharing\" target=\"_blank\"> https://docs.google.com/document/d/1oNNDTEdoZlCLs26byV2lnsC-TAXq25SPNo-jlF8_mqk/edit </a> </p> <h3>Submission Instructions (Important)</h3> <p> <strong>Do NOT reply to this email with your files.</strong> </p> <p> All submissions must be done as follows: </p> <ol> <li>Upload all required files to <strong>Google Drive</strong></li> <li>Set access to <em>“Anyone with the link can view”</em></li> <li>Submit the Google Drive link via the form below</li> </ol> <p> <strong>Submission Form:</strong><br /> <a href=\"https://tally.so/r/obRQEe\" target=\"_blank\"> https://tally.so/r/obRQEe </a> </p> <h3>Deadline</h3> <p> The deadline is <strong>11:59 PM (your local time)</strong> on <strong> {{ (() => { const d = new Date(Date.now()); d.setDate(d.getDate() + 4); return d.toLocaleDateString('en-GB'); })() }} </strong>. </p> <p> Late or incorrectly submitted entries will not be reviewed. </p> <h3>What Happens Next</h3> <p> Candidates who perform well on this task will be <strong>shortlisted for an interview</strong>. This task is the primary screening step, so follow instructions precisely. </p> <p> If you have questions, clarify them early. We’re evaluating execution, attention to detail, and your ability to follow a brief. </p> <p> Best regards,<br /> Team Pasovit </p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -176,
+        32
+      ],
+      "id": "e0dac945-c867-4f7a-8472-b7b3b1bcd230",
+      "name": "Send email",
+      "webhookId": "ff5f42f0-fde8-434c-b37b-7eaff6636b7f",
+      "credentials": {
+        "smtp": {
+          "id": "bJzQiT65Pwo6d8Xy",
+          "name": "jobs@pasovit.com"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Tally Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "208d33ee-c718-44aa-9bca-9076b0258b11",
+  "activeVersionId": "79a7323f-fe98-4984-aed7-f2b2a0726e4a",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-17T07:43:31.163Z",
+      "createdAt": "2026-01-17T07:43:31.163Z",
+      "role": "workflow:owner",
+      "workflowId": "m1UWg_PLAdWPANWeQY1ih",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-01-17T08:20:46.654Z",
+    "createdAt": "2026-01-17T08:20:44.399Z",
+    "versionId": "79a7323f-fe98-4984-aed7-f2b2a0726e4a",
+    "workflowId": "m1UWg_PLAdWPANWeQY1ih",
+    "nodes": [
+      {
+        "parameters": {
+          "formId": "aQe0qb"
+        },
+        "type": "n8n-nodes-tallyforms.tallyTrigger",
+        "typeVersion": 2,
+        "position": [
+          -384,
+          32
+        ],
+        "id": "6f957377-f109-484d-b428-ef7bb1c439fb",
+        "name": "Tally Trigger",
+        "webhookId": "8a4794e3-ee65-4c15-b8a0-b1823b3a8571",
+        "credentials": {
+          "tallyApi": {
+            "id": "SvK9vBIQFtlHwW3K",
+            "name": "Tally account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "fromEmail": "jobs@pasovit.com",
+          "toEmail": "={{ $json.question_ZN8EkV.value }}",
+          "subject": "Pasovit Technologies - Round 1 task",
+          "html": "=<p> Thank you for your interest in the Graphic Designer role. As the next step in our evaluation process, we’re assigning you a <strong>practical design task</strong>. </p> <p> <strong>Before you start, it is mandatory that you read all instructions in the Google Doc linked below.</strong> This document contains the complete brief, expectations, and submission requirements. Missing any instruction will directly impact your evaluation. </p> <p> <strong>Task Instructions (Read Carefully):</strong><br /> <a href=\"https://docs.google.com/document/d/1oNNDTEdoZlCLs26byV2lnsC-TAXq25SPNo-jlF8_mqk/edit?usp=sharing\" target=\"_blank\"> https://docs.google.com/document/d/1oNNDTEdoZlCLs26byV2lnsC-TAXq25SPNo-jlF8_mqk/edit </a> </p> <h3>Submission Instructions (Important)</h3> <p> <strong>Do NOT reply to this email with your files.</strong> </p> <p> All submissions must be done as follows: </p> <ol> <li>Upload all required files to <strong>Google Drive</strong></li> <li>Set access to <em>“Anyone with the link can view”</em></li> <li>Submit the Google Drive link via the form below</li> </ol> <p> <strong>Submission Form:</strong><br /> <a href=\"https://tally.so/r/obRQEe\" target=\"_blank\"> https://tally.so/r/obRQEe </a> </p> <h3>Deadline</h3> <p> The deadline is <strong>11:59 PM (your local time)</strong> on <strong> {{ (() => { const d = new Date(Date.now()); d.setDate(d.getDate() + 4); return d.toLocaleDateString('en-GB'); })() }} </strong>. </p> <p> Late or incorrectly submitted entries will not be reviewed. </p> <h3>What Happens Next</h3> <p> Candidates who perform well on this task will be <strong>shortlisted for an interview</strong>. This task is the primary screening step, so follow instructions precisely. </p> <p> If you have questions, clarify them early. We’re evaluating execution, attention to detail, and your ability to follow a brief. </p> <p> Best regards,<br /> Team Pasovit </p>",
+          "options": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.emailSend",
+        "typeVersion": 2.1,
+        "position": [
+          -176,
+          32
+        ],
+        "id": "e0dac945-c867-4f7a-8472-b7b3b1bcd230",
+        "name": "Send email",
+        "webhookId": "ff5f42f0-fde8-434c-b37b-7eaff6636b7f",
+        "credentials": {
+          "smtp": {
+            "id": "bJzQiT65Pwo6d8Xy",
+            "name": "jobs@pasovit.com"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Tally Trigger": {
+        "main": [
+          [
+            {
+              "node": "Send email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Aeontrix AI",
+    "name": "Version 79a7323f",
+    "description": "",
+    "autosaved": false
+  },
+  "tags": [
+    {
+      "updatedAt": "2026-01-07T11:24:37.779Z",
+      "createdAt": "2026-01-07T11:24:37.779Z",
+      "id": "088iPKT5RBenhZCp",
+      "name": "Internal"
+    },
+    {
+      "updatedAt": "2026-01-08T06:04:24.959Z",
+      "createdAt": "2026-01-08T06:04:24.959Z",
+      "id": "WCCimUcOpt9oSzcv",
+      "name": "HR"
+    }
+  ]
+}
