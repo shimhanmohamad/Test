@@ -1,0 +1,329 @@
+{
+  "updatedAt": "2026-01-19T04:03:56.417Z",
+  "createdAt": "2026-01-17T11:41:41.620Z",
+  "id": "VBsUso-YzllLwAJ_mfTap",
+  "name": "Get Booking by Email",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "get-booking",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -800,
+        112
+      ],
+      "id": "9d0b3a6e-154b-4ba3-a774-ed31f3eda61f",
+      "name": "Webhook",
+      "webhookId": "25ad354e-5976-4668-82f9-d8893179cd8e"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "email",
+              "value": "={{ $json.body.message.toolCalls[0].function.arguments.email }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "toolCallId",
+              "value": "={{ $json.body.message.toolCalls[0].id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -608,
+        112
+      ],
+      "id": "46089ea3-4426-4f2d-af5c-4cb50ff02df0",
+      "name": "Extract Email"
+    },
+    {
+      "parameters": {
+        "url": "https://api.cal.com/v2/bookings",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "attendeeEmail",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "name": "status",
+              "value": "upcoming"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "cal-api-version",
+              "value": "2024-08-13"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer cal_live_f1fc35fc8a69c1b7237d752a42d11da7"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -400,
+        112
+      ],
+      "id": "d79edc84-c69e-496f-83d9-b1e79cbc1fb0",
+      "name": "Get Bookings",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        112
+      ],
+      "id": "4523cf2d-1e88-491b-8d1a-963747255468",
+      "name": "Bookings Found?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const toolCallId = $('Extract Email').item.json.toolCallId;\nconst bookings = $input.item.json.data;\n\nif (!bookings || bookings.length === 0) {\n  return {\n    json: {\n      results: [{\n        toolCallId: toolCallId,\n        result: \"No upcoming bookings found with this email address.\"\n      }]\n    }\n  };\n}\n\n// Get the first upcoming booking\nconst booking = bookings[0];\nconst startTime = new Date(booking.start);\nconst formattedDate = startTime.toLocaleDateString('en-US', { \n  month: 'long', \n  day: 'numeric', \n  year: 'numeric' \n});\nconst formattedTime = startTime.toLocaleTimeString('en-US', { \n  hour: 'numeric', \n  minute: '2-digit',\n  hour12: true \n});\n\nreturn {\n  json: {\n    results: [{\n      toolCallId: toolCallId,\n      result: `I found your appointment scheduled for ${formattedDate} at ${formattedTime}.`,\n      bookingId: booking.uid || booking.id,\n      bookingDetails: {\n        id: booking.uid || booking.id,\n        start: booking.start,\n        end: booking.end,\n        attendeeEmail: booking.attendees?.[0]?.email || $('Extract Email').item.json.email\n      }\n    }]\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "076e989e-8343-4d1a-8e33-a2f817968805",
+      "name": "Booking Found Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const toolCallId = $('Extract Email').item.json.toolCallId;\n\nreturn {\n  json: {\n    results: [{\n      toolCallId: toolCallId,\n      result: \"I couldn't find any upcoming appointments with that email address. Could you verify the email you used when booking?\"\n    }]\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        208
+      ],
+      "id": "c9ce08aa-cf62-4a85-b501-753aa4ed9e69",
+      "name": "No Booking Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const toolCallId = $('Extract Email').item.json.toolCallId;\nconst error = $input.item.json.error;\n\nlet errorMessage = \"I'm having trouble looking up your booking. Please try again.\";\n\ntry {\n  if (error && error.message) {\n    const jsonMatch = error.message.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      const errorJson = JSON.parse(jsonMatch[0]);\n      const calComError = errorJson.error?.message || '';\n      \n      if (calComError.includes('unauthorized') || calComError.includes('Invalid')) {\n        errorMessage = \"There was an authentication issue. Please contact support.\";\n      }\n    }\n  }\n} catch (e) {\n  console.log('Error parsing:', e);\n}\n\nreturn {\n  json: {\n    results: [{\n      toolCallId: toolCallId,\n      result: errorMessage\n    }]\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        400
+      ],
+      "id": "642e5ae2-c2e0-4a35-bd35-7099fff3d997",
+      "name": "Error Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "16f0b38f-0378-4a75-8227-46563b96700d",
+      "name": "Respond - Found"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        208
+      ],
+      "id": "1084eba2-27f3-4aeb-b1e5-3168f1e597f2",
+      "name": "Respond - Not Found"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        400
+      ],
+      "id": "4928a139-9802-4312-b9d5-438f2a147a93",
+      "name": "Respond - Error"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Email": {
+      "main": [
+        [
+          {
+            "node": "Get Bookings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Bookings": {
+      "main": [
+        [
+          {
+            "node": "Bookings Found?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bookings Found?": {
+      "main": [
+        [
+          {
+            "node": "Booking Found Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Booking Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booking Found Response": {
+      "main": [
+        [
+          {
+            "node": "Respond - Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Booking Response": {
+      "main": [
+        [
+          {
+            "node": "Respond - Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Response": {
+      "main": [
+        [
+          {
+            "node": "Respond - Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "82650903-4013-4c46-ae42-172dc5aee073",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-17T11:41:41.620Z",
+      "createdAt": "2026-01-17T11:41:41.620Z",
+      "role": "workflow:owner",
+      "workflowId": "VBsUso-YzllLwAJ_mfTap",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
