@@ -1,0 +1,2864 @@
+{
+  "updatedAt": "2026-01-19T14:15:54.273Z",
+  "createdAt": "2026-01-07T10:10:40.773Z",
+  "id": "12UYSgM56EDBCciUMx5yI",
+  "name": "Aeontrix Website Chatbot",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2656,
+        4320
+      ],
+      "id": "869e1266-6b1b-463e-9885-70583d6630eb",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://www.lhd.lk",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2464,
+        4320
+      ],
+      "id": "32f005e8-3fb3-4c14-8610-fb9a4f28f217",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2624,
+        4832
+      ],
+      "id": "d744f4d5-2c23-44cb-85c5-5c2b425455b6",
+      "name": "Webhook",
+      "webhookId": "308084bd-2e21-4eca-a762-a58129044f8a"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "63a100bf-ac6e-4687-b0cb-db5f584777d5",
+              "name": "query_embedding",
+              "value": "={{ $json[\"data\"][0][\"embedding\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1840,
+        4832
+      ],
+      "id": "4d6663c5-3666-4cb8-ac01-86902268118d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    content \nFROM \n    knowledge_base \nORDER BY \n    embedding <=> '{{ $json[\"embedding\"] }}' \nLIMIT \n    3;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1616,
+        4832
+      ],
+      "id": "1e3b21a0-dcbf-4f1a-b7ed-05179fa68cf1",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "9Cr3GcGqUAkAXiaB",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function to format the chat history into a string\nfunction formatChatHistory(history) {\n  if (!history || history.length === 0) {\n    return \"No previous conversation history available.\";\n  }\n  let formattedHistory = \"Previous Conversation History:\\n---\\n\";\n  history.forEach(item => {\n    // Assuming Step 2 output is an array where each item is a message\n    formattedHistory += `${item.json.role}: ${item.json.message}\\n`;\n  });\n  formattedHistory += \"---\\n\";\n  return formattedHistory;\n}\n\n// Function to format the retrieved knowledge base chunks\nfunction formatContext(context) {\n  if (!context || context.length === 0) {\n    return \"No additional context found in the knowledge base.\";\n  }\n  let formattedContext = \"Retrieved Knowledge Base Context:\\n---\\n\";\n  context.forEach((item, index) => {\n    // Assuming Step 4 output is an array of items, each with a 'content' field\n    formattedContext += `[Chunk ${index + 1}]: ${item.json.content}\\n`;\n  });\n  formattedContext += \"---\\n\";\n  return formattedContext;\n}\n\n// The main function where data processing occurs\nconst historyData = $input.item(0).json.historyData || []; // Data from Step 2 (Memory)\nconst contextData = $input.item(0).json.contextData || []; // Data from Step 4 (RAG Chunks)\nconst currentMessage = $input.item(0).json.user_message; // From Step 1\n\nconst history = formatChatHistory(historyData);\nconst context = formatContext(contextData);\n\n// 1. Define the System Instruction (the LLM's Persona and Rules)\nconst systemInstruction = `You are a helpful and knowledgeable AI assistant. \nYour primary goal is to answer the user's question accurately and concisely.\n---\nInstructions:\n1. Use the 'Retrieved Knowledge Base Context' below to form your answer.\n2. If the context does not contain the necessary information, state clearly that you cannot answer based on the provided data, but be polite.\n3. Use the 'Previous Conversation History' to maintain context and remember what was discussed.\n4. Do not mention the existence of 'context' or 'history' in your final answer.`;\n\n// 2. Combine all parts into the final prompt\nconst finalPrompt = \n  `${systemInstruction}\\n\\n` + \n  `${history}\\n\\n` + \n  `${context}\\n\\n` + \n  `USER QUESTION: ${currentMessage}`;\n\n// 3. Output the final prompt and other necessary data for the next steps\nreturn [\n  {\n    json: {\n      final_prompt: finalPrompt,\n      session_id: $input.item(0).json.session_id, // Pass session ID for Step 7\n      user_message: currentMessage,               // Pass user message for Step 7\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1360,
+        4832
+      ],
+      "id": "33c9641c-aa40-4348-95ed-63b501cc86a9",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2176,
+        4832
+      ],
+      "id": "356754ab-5785-4911-9f41-acff7ef54ebe",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -2176,
+        5008
+      ],
+      "id": "5e42bcbb-6c71-45ae-b601-66bbfc007326",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- Configuration ---\nconst CHUNK_SIZE = 1000;\nconst CHUNK_OVERLAP = 200;\nconst INPUT_FIELD = 'text'; // ASSUMPTION: This is the field from HTML Extractor\n\n// FIX: Change $input.item(0) to $input.all()[0]\n// $input.all() returns an array of ALL input items. We expect only one item here.\nconst fullText = $input.all()[0].json[INPUT_FIELD]; \n\nconst chunks = [];\n\nif (fullText) {\n    let currentPosition = 0;\n    \n    // Loop through the text, creating chunks with overlap\n    while (currentPosition < fullText.length) {\n        // Calculate the end position of the chunk\n        let endPosition = Math.min(currentPosition + CHUNK_SIZE, fullText.length);\n        \n        // Extract the chunk\n        let chunk = fullText.substring(currentPosition, endPosition);\n        \n        // Store the chunk in an object with a 'content' field\n        chunks.push({\n            json: {\n                content: chunk\n            }\n        });\n        \n        // Move the position back by the overlap amount for the next loop\n        currentPosition += (CHUNK_SIZE - CHUNK_OVERLAP);\n        \n        // Safety break if the overlap is greater than or equal to the chunk size\n        if (CHUNK_SIZE - CHUNK_OVERLAP <= 0) break;\n    }\n}\n\n// Return the array of chunks. This creates multiple items for the next node.\nreturn chunks;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2064,
+        4320
+      ],
+      "id": "17371d94-5dff-4e4a-bba5-12ae6feb935c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "knowledge_base",
+          "mode": "list",
+          "cachedResultName": "knowledge_base"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -1872,
+        4320
+      ],
+      "id": "b50bc0f6-6966-4f2f-b1cb-22ef455788ee",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "wzspUIVlZ6uMZOK5",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1920,
+        4512
+      ],
+      "id": "ae73ad4a-240a-4d23-b2f6-056837915f54",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -1776,
+        4512
+      ],
+      "id": "43636513-cdf5-45c6-82b6-b6797b4c3052",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "chat_history",
+        "limit": 5,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "condition": "eq",
+              "keyValue": "={{ $json[\"session_id\"] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2400,
+        4832
+      ],
+      "id": "55aa88a5-33ce-4389-8b4a-d7e41c69ce2c",
+      "name": "Retrieve Chat History",
+      "credentials": {
+        "supabaseApi": {
+          "id": "wzspUIVlZ6uMZOK5",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4-turbo",
+          "mode": "list",
+          "cachedResultName": "GPT-4-TURBO"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json[\"final_prompt\"] }}"
+            },
+            {
+              "role": "system"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -1136,
+        4832
+      ],
+      "id": "cd3696c1-d7fb-43cf-8206-334b96588138",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Data passed from previous nodes (WebHook, etc.)\nconst session_id = $input.item(0).json.session_id;\nconst user_message = $input.item(0).json.user_message;\n\n// Get the assistant's response from Step 6's output.\n// NOTE: This path is for the 'Message a Model' operation.\nconst assistant_message = $input.item(0).json.choices[0].message.content; \n\n// 1. Item for the User's Message\nconst userItem = {\n  session_id: session_id,\n  role: 'user',\n  message: user_message\n};\n\n// 2. Item for the Assistant's Response\nconst assistantItem = {\n  session_id: session_id,\n  role: 'assistant',\n  message: assistant_message\n};\n\n// Return both items as an array. The Supabase node will see two items.\nreturn [{ json: userItem }, { json: assistantItem }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -768,
+        4832
+      ],
+      "id": "df0c2fe6-a80a-4ae2-9f1f-1bcd90655ea1",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "tableId": "chat_history",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "session_id",
+              "fieldValue": "={{ $json[\"session_id\"] }}"
+            },
+            {
+              "fieldId": "role",
+              "fieldValue": "={{ $json[\"role\"] }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $json[\"message\"] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        4832
+      ],
+      "id": "730e3ad2-5e93-42d4-b218-60f3216a7ee4",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "wzspUIVlZ6uMZOK5",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.message }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -288,
+        4832
+      ],
+      "id": "2e091ff5-83e1-4328-a891-93a2f2ee988f",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "scrape",
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        -2256,
+        4320
+      ],
+      "id": "bf12efc2-b9fe-4594-81cf-eaaa60709052",
+      "name": "Scrape a url and get its content",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "dJI9FEffyNX3rk4n",
+          "name": "Firecrawl account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -1536,
+        4320
+      ],
+      "id": "81150a03-8be0-4465-96d7-f74ad5519342",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "98799c5a-cb45-4cc9-98f7-2625992ce1fd",
+      "name": "Embeddings OpenAI1",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        160,
+        6288
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "677680658761861",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "id": "498fffaf-d543-44fb-8f6b-1d10a37567bf",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        96,
+        6000
+      ],
+      "webhookId": "23834751-5066-48ba-8e19-549680df2b27",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "677680658761861",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "=The File type you provided is unsupported.",
+        "additionalFields": {}
+      },
+      "id": "dc25aa74-c3db-4495-8bc4-7fb95d77dede",
+      "name": "Send Unsupported Response",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        -704,
+        6640
+      ],
+      "webhookId": "017d267f-4897-4726-bf03-304ef10352bf",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "14e23243-cd44-4cb1-99bd-9e6905d511ad",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "text/csv"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "CSV"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "6d7616c5-6bdd-47b7-923e-639491d15a4e",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "text/html"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "HTML"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "a2174e02-378a-41ff-b269-61f4fc3f1de9",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "=mapped/calendar"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Calendar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "f3b406d7-362d-473e-8edd-c3e5f2d9c44c",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "text/rtf"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "RTF"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "64dd4658-54e7-4453-adbc-7067dffcd555",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "text/plain"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "TXT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "7540a3ab-b48e-4bec-94e9-a5dfc3d65a4c",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "mapped/xml"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "XML"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "88b618fd-9a88-491e-91dd-c5fc9efa36e3",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "application/pdf"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "9c4d90aa-b4ea-4a63-b15e-666899c8360e",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "application/json"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "JSON"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "9baa7c88-3950-4099-8498-99a4640b95e7",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "application/vnd.ms-excel"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "XLS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "b83e540c-ba1e-42d0-ac83-f675e25e6aea",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "XLSX"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "ea3be820-2ead-4ec2-b292-42d3c7804b55",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.mime_type }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "ELSE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "344f909e-8f6b-463d-9832-584eefc80642",
+      "name": "Route Document Types",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -992,
+        6208
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "2fc5c912-629b-4cbe-b5e3-7e3f0651c628",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "text"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "26a3d85c-0815-48ff-85ce-713129a1107c",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "audio"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "840b95b8-6559-4fb7-b32c-651451d6d0d2",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "image"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Image"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "3e7a07f9-b785-450c-8c68-f6b276838503",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "document"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Document"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9f77b3a0-f439-417f-8dec-bc13b4c820dd",
+      "name": "Route Types",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -1936,
+        5888
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "314d6936-30f7-4774-a8ac-c1d7b9cb33ba",
+      "name": "Download Document",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -1392,
+        6176
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "dc20216e-a834-4dd2-adff-70034b07246b",
+      "name": "Download Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -1392,
+        6000
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "f9adf3f4-a571-4931-ac6f-30c07e4c9974",
+      "name": "Download Voicemail",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -1392,
+        5824
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].document.id }}"
+      },
+      "id": "7f584046-610b-4d18-9e74-53fc10d660f5",
+      "name": "Gets WhatsApp Document Source URL",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        -1632,
+        6176
+      ],
+      "webhookId": "c2982df4-1d8d-4669-a724-44ae17d11e6c",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].image.id }}"
+      },
+      "id": "90314865-e984-4f52-bb2c-f12bd877e4ae",
+      "name": "Gets WhatsApp Image Source URL",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        -1632,
+        6000
+      ],
+      "webhookId": "c2982df4-1d8d-4669-a724-44ae17d11e6c",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].audio.id}}"
+      },
+      "id": "46653bef-feb6-4261-ae3a-b39fd00b57ae",
+      "name": "Gets WhatsApp Voicemail Source URL",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        -1632,
+        5824
+      ],
+      "webhookId": "bbe62f3d-8788-49d4-aae6-9e9411446d44",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "38aec976-a32c-4b0e-85f4-c90adc16abc9",
+              "name": "text",
+              "type": "string",
+              "value": "={{ $json.messages[0].text.body }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8e6e539e-698f-48d4-ba34-f2751cd0609a",
+      "name": "Map text prompt",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1632,
+        5632
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "48af2dcc-4ce9-45fc-abfc-54f803930092",
+              "name": "text",
+              "type": "string",
+              "value": "=User image description: {{ $json.content }}\n\nUser image caption: {{ $('Route Types').item.json.messages[0].image.caption }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aaf9eed7-3d1c-4df1-9076-9bfad6e3f7f3",
+      "name": "Map image prompt",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -960,
+        6000
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "da68bcca-a2a6-4676-8649-6fb1b664e44c",
+              "name": "text",
+              "type": "string",
+              "value": "=Parsed text: {{ $json.text || $json.data || $json }}\n\nCaption text: {{ $('Route Types').item.json.messages[0].document.caption }}\n\nMimeType: {{ $('Gets WhatsApp Document Source URL').item.json.mime_type }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "25b210ad-6cfd-416f-a4b3-cb9c6263b42a",
+      "name": "Map document prompt",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -272,
+        6320
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "jsCode": "let requests = $(\"Download Document\").all()\n\nrequests.forEach((request) => {\n  let mime_type = request.json.mime_type\n\n  if (\n    mime_type === \"text/calendar\" || \n    mime_type === \"application/ics\" || \n    mime_type === \"text/x-calendar\"\n  ) {\n    request.json.mime_type = \"mapped/calendar\"\n  }\n\n  if (\n    mime_type === \"application/xml\" || \n    mime_type === \"text/xml\") {\n    request.json.mime_type = \"mapped/xml\"\n  }\n\n  if (!mime_type) {\n    request.json.mime_type = $('Gets WhatsApp Document Source URL').first().json.mime_type\n  }\n})\n\nreturn requests;"
+      },
+      "id": "b548eabb-8587-4af4-a9c6-fe092672fb03",
+      "name": "Map file extensions",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -1184,
+        6176
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "72ae0d20-616a-4a65-9b14-53bf53656091",
+              "name": "data",
+              "type": "string",
+              "value": "={{ $json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f83bca4b-0feb-4058-8fbd-f0454a0112b9",
+      "name": "Map JSON",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -496,
+        6480
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "=data",
+        "options": {}
+      },
+      "id": "565c2c45-7416-4aef-8ac2-76d8996f4b98",
+      "name": "Extract from XLSX",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -704,
+        6480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "xls",
+        "options": {}
+      },
+      "id": "9e12581f-4334-4110-be8f-675c702ee0a0",
+      "name": "Extract from XLS",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -704,
+        6320
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "85bb04c6-bd8b-4c00-9950-c459273f65fb",
+      "name": "Extract from PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -496,
+        6208
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "inputType": "base64",
+        "options": {
+          "detail": "auto"
+        }
+      },
+      "id": "9a271419-4e40-4907-9e8d-0752140c2b8b",
+      "name": "OpenAI1",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -1168,
+        6000
+      ],
+      "typeVersion": 1.8,
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "translate",
+        "options": {}
+      },
+      "id": "51ae9992-92b0-438f-92d3-9a099069e795",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -1168,
+        5824
+      ],
+      "typeVersion": 1.8,
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "id": "7fd63008-cde7-4dfb-be86-7ce3703df93c",
+      "name": "WhatsApp Trigger",
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "position": [
+        -2144,
+        5920
+      ],
+      "webhookId": "ab09ca3e-53b2-4079-9ddc-bccb2f69551b",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Search Index Example \n\n{\n  \"mappings\": {\n    \"dynamic\": false,\n    \"fields\": {\n      \"_id\": {\n        \"type\": \"string\"\n      },\n      \"text\": {\n        \"type\": \"string\"\n      },\n      \"embedding\": {\n        \"type\": \"knnVector\",\n        \"dimensions\": 1536,\n        \"similarity\": \"cosine\"\n      },\n      \"source\": {\n        \"type\": \"string\"\n      },\n      \"doc_id\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}\n",
+        "height": 556,
+        "width": 198
+      },
+      "id": "a539ba6c-fa92-4e1e-b257-cd1f9be9006f",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2784,
+        5696
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "This workflow listens for WhatsApp messages (text, audio, image, documents), converts them into embeddings, searches MongoDB, and uses GPT-4o-mini to provide context-aware answers with conversation memory.",
+        "height": 184,
+        "color": 4
+      },
+      "id": "32ee6fb5-40b2-475f-800b-db1d45d714f9",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2528,
+        5872
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Run this workflow manually to import and index Google Docs product documentation into MongoDB with vector embeddings for fast search.",
+        "color": 5
+      },
+      "id": "3925a813-3d82-46a7-aaca-48c083c1a017",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1968,
+        5424
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "https://docs.google.com/document/d/1gvgp71e9edob8WLqFIYCdzC7kUq3pLO37VKb-a-vVW4/edit?tab=t.0"
+      },
+      "id": "f53ed85f-4127-4b81-ad1b-2eaea5c665e8",
+      "name": "Google Docs Importer",
+      "type": "n8n-nodes-base.googleDocs",
+      "position": [
+        -2576,
+        5280
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "bb46327b-b822-439a-9be0-aca19999e5e5",
+      "name": "OpenAI Embeddings Generator",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        -2464,
+        5488
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "mongoCollection": {
+          "__rl": true,
+          "mode": "list",
+          "value": "n8n-template",
+          "cachedResultName": "n8n-template"
+        },
+        "vectorIndexName": "data_index",
+        "options": {}
+      },
+      "id": "f80fa88f-86a0-4fd4-a751-3609093acec7",
+      "name": "MongoDB Vector Store Inserter",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreMongoDBAtlas",
+      "position": [
+        -2352,
+        5280
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "chunkSize": 3000,
+        "chunkOverlap": 200,
+        "options": {
+          "splitCode": "markdown"
+        }
+      },
+      "id": "4196a55b-e612-4b5f-a8ca-bb8cb437274c",
+      "name": "Document Chunker",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "position": [
+        -2256,
+        5616
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.content }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "doc_id",
+                "value": "={{ $json.documentId }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "57281dd0-e4cf-4d24-bf22-651f70d1ef9d",
+      "name": "Document Section Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "position": [
+        -2256,
+        5456
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "productDocs",
+        "toolDescription": "retreive documentation",
+        "mongoCollection": {
+          "__rl": true,
+          "mode": "list",
+          "value": "n8n-template",
+          "cachedResultName": "n8n-template"
+        },
+        "vectorIndexName": "data_index",
+        "options": {}
+      },
+      "id": "359e647a-1250-4cdc-becf-77e7c4f37b0e",
+      "name": "MongoDB Vector Search",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreMongoDBAtlas",
+      "position": [
+        -64,
+        6176
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=memory_{{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}"
+      },
+      "id": "54c49df1-16d7-43a6-9156-8a234d34f847",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        -192,
+        6176
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "afb1b97f-7cd6-4b62-8224-6ed0bef7120e",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        -288,
+        6176
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "id": "e2c78b99-0555-49d9-a319-f40f209fdad1",
+      "name": "Knowledge Base Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -288,
+        6000
+      ],
+      "typeVersion": 1.9
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload your data to test RAG",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Upload your file(s)",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf, .csv",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -336,
+        7248
+      ],
+      "id": "bd110da6-f156-455b-a4fa-d48b284e77ff",
+      "name": "Upload your file here",
+      "webhookId": "82848bc4-5ea2-4e5a-8bb6-3c09b94a8c5d"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "vector_store_key",
+          "mode": "list",
+          "cachedResultName": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        7248
+      ],
+      "id": "171914ed-8e33-497d-9739-fe8a4d310c81",
+      "name": "Insert Data to Store"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "knowledge_base",
+        "toolDescription": "Use this knowledge base to answer questions from the user",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        7472
+      ],
+      "id": "1b83f2a3-23eb-4fa4-bf74-29de95696c6c",
+      "name": "Query Data Tool"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        7232
+      ],
+      "id": "deaeaa20-d47f-486d-aae6-f62b1f3633b5",
+      "name": "When chat message received",
+      "webhookId": "4091fa09-fb9a-4039-9411-7104d213f601"
+    },
+    {
+      "parameters": {
+        "content": "### Embeddings\n\nThe Insert and Retrieve operation use the same embedding node.\n\nThis is to ensure that they are using the **exact same embeddings and settings**.\n\nDifferent embeddings might not work at all, or have unintended consequences.\n",
+        "height": 240,
+        "width": 320,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        7696
+      ],
+      "typeVersion": 1,
+      "id": "fef97feb-fb0d-47af-b683-4a8cc5d219ab",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        7568
+      ],
+      "id": "2fa29c78-9e11-45d0-85ee-4872e171bf6e",
+      "name": "Embeddings OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        7392
+      ],
+      "id": "e002c15c-7c68-449d-aa51-a8cc3080eb54",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "content": "### Readme\nLoad your data into a vector database with the 📚 **Load Data** flow, and then use your data as chat context with the 🐕 **Retriever** flow.\n\n**Quick start**\n1. Click on the `Execute Workflow` button to run the 📚 **Load Data** flow.\n2. Click on `Open Chat` button to run the 🐕 **Retriever** flow. Then ask a question about content from your document(s)\n\n\nFor more info, check [our docs on RAG in n8n](https://docs.n8n.io/advanced-ai/rag-in-n8n/).",
+        "height": 300,
+        "width": 440,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -864,
+        7184
+      ],
+      "typeVersion": 1,
+      "id": "6c951c05-30da-4dbb-bfb3-f83e3f6dfccf",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "### 📚 Load Data Flow",
+        "height": 508,
+        "width": 700,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -384,
+        7184
+      ],
+      "typeVersion": 1,
+      "id": "b354204b-7184-4444-ad99-bab831357327",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        736,
+        7232
+      ],
+      "id": "db106066-1dfd-410a-96df-0d9bbfa5706a",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        736,
+        7360
+      ],
+      "id": "16949ee3-8d01-4b18-a731-1bd78fbf7558",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "l6mhMk10h2SRZNoi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### 🐕 2. Retriever Flow",
+        "height": 460,
+        "width": 680,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        400,
+        7184
+      ],
+      "typeVersion": 1,
+      "id": "aa5854a7-58cc-4892-b1b7-f494f0ed7a4e",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "formTitle": "SOP Builder",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Website",
+              "placeholder": "https://recap.aitools.inc",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -3360,
+        6896
+      ],
+      "id": "de89acf3-a3dc-4027-847e-243e872dc207",
+      "name": "form_trigger",
+      "webhookId": "11057270-a4bb-40e4-842c-6947806208c7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "=You are a friendly and professional AI Concierge for a hotel. Your name is [You can insert a name here, e.g., \"Alex\"], and your sole purpose is to assist guests and potential customers with their questions via WhatsApp. You are a representative of the hotel brand, so your tone must be helpful, welcoming, and clear.\n\nYour primary knowledge source is the \"Hotel Encyclopedia,\" an internal document containing all official information about the hotel. This is your single source of truth.\n\nYour process for handling every user message is as follows:\n\n1.  **Analyze the Request:** Carefully read the user's message to fully understand what they are asking for. Identify the key topics (e.g., \"pool hours,\" \"breakfast cost,\" \"parking,\" \"pet policy\").\n\n2.  **Consult the Encyclopedia:** Before formulating any response, you MUST perform a deep and targeted search within the Hotel Encyclopedia. Think critically about where the relevant information might be located. For example, a query about \"check-out time\" should lead you to search sections like \"Check-in/Check-out Policies\" or \"Guest Services.\"\n\n3.  **Formulate a Helpful Answer:**\n    *   If you find the exact information in the Encyclopedia, provide a clear, concise, and friendly answer.\n    *   Present information in an easy-to-digest format. Use bullet points for lists (like amenities or restaurant hours) to avoid overwhelming the user.\n    *   Always maintain a positive and helpful tone. Start your responses with a friendly greeting.\n\n4.  **Handle Missing Information (Crucial):**\n    *   If, and only if, the information required to answer the user's question does NOT exist in the Hotel Encyclopedia, you must not, under any circumstances, invent, guess, or infer an answer.\n    *   In this scenario, you must respond politely that you cannot find the specific details for their request. Do not apologize excessively. A simple, professional statement is best.\n    *   Immediately after stating you don't have the information, you must direct them to a human for assistance. For example: \"I don't have the specific details on that particular topic. Our front desk team would be happy to help you directly. You can reach them by calling [Hotel Phone Number].\"\n\n**Strict Rules & Constraints:**\n\n*   **No Fabrication:** You are strictly forbidden from making up information. This includes times, prices, policies, names, availability, or any other detail not explicitly found in the Hotel Encyclopedia.\n*   **Stay in Scope:** Your role is informational. Do not attempt to process bookings, modify reservations, or handle personal payment information. For such requests, politely direct the user to the official booking channel or to call the front desk.\n*   **Single Source of Truth:** Do not use any external knowledge or information from past conversations. Every answer must be based on a fresh lookup in the Hotel Encyclopedia.\n*   **Professional Tone:** Avoid slang, overly casual language, or emojis, but remain warm and approachable.\n\n**Example Tone:**\n\n*   **Good:** \"Hello! The pool is open from 8:00 AM to 10:00 PM daily. We provide complimentary towels for all our guests. Let me know if there's anything else I can help you with!\"\n*   **Bad:** \"Yeah, the pool's open 'til 10. You can grab towels there.\"\n*   **Bad (Hallucination):** \"I believe the pool is open until 11:00 PM on weekends, but I would double-check.\"\n\n\n---\n# Encyclopedia\n\n## 1) YAML Frontmatter\n\n---\nencyclopedia_version: 1.1\ngenerated_at: 2024-08-13T12:00:00Z\nsite:\n  name: \"Hotel Le Agavi\"\ncounts:\n  total_pages_processed: 69\n  total_entries: 52\n  total_glossary_terms: 0\n  total_media_links: 0\nintegrity:\n  information_synthesis_method: \"deduplicated_canonical\"\n  all_pages_processed: true\n---\n\n## 2) Title\n\n# Hotel Le Agavi — Support Encyclopedia\n\n## 3) Table of Contents\n\n- [Quick Start for Agents](#5-quick-start-for-agents-orientation-layer)\n- [Taxonomy & Topics](#6-taxonomy--topics-the-core-encyclopedia)\n  - [Property Overview & Brand](#property-overview--brand)\n  - [Rooms & Suites](#rooms--suites)\n  - [Rates, Packages & Promotions](#rates-packages--promotions)\n  - [Reservations & Booking Policies](#reservations--booking-policies)\n  - [Check-In / Check-Out & Front Desk](#check-in--check-out--front-desk)\n  - [Guest Services & Amenities](#guest-services--amenities)\n  - [Dining, Bars & Room Service](#dining-bars--room-service)\n  - [Spa, Pool, Fitness & Recreation](#spa-pool-fitness--recreation)\n  - [Parking, Transportation & Directions](#parking-transportation--directions)\n  - [Meetings, Events & Weddings](#meetings-events--weddings)\n  - [Policies](#policies)\n  - [Billing, Taxes & Receipts](#billing-taxes--receipts)\n  - [Cancellations, No-Shows & Refunds](#cancellations-no-shows--refunds)\n  - [Local Area & Attractions](#local-area--attractions)\n  - [Contact, Hours & Support Channels](#contact-hours--support-channels)\n- [Outlets, Venues & Amenities Index](#8-outlets-venues--amenities-index)\n- [Contact & Support Channels](#9-contact--support-channels)\n- [Coverage & Integrity Report](#10-coverage--integrity-report)\n\n## 4) Quick Start for Agents (Orientation Layer)\n\n*   **What this is:** This is a complete, deduplicated knowledge base built from all pages of the Hotel Le Agavi website. It serves as the single source of truth for all guest-facing policies, amenities, and services.\n*   **How to navigate:**\n    *   Use the **Table of Contents** to jump to a major category like \"Rooms & Suites\" or \"Dining, Bars & Room Service\".\n    *   Use the **Taxonomy & Topics** section for detailed information on specific policies and services.\n    *   The **Outlets, Venues & Amenities Index** provides a quick summary of all hotel facilities.\n    *   Use your browser's search function (Ctrl+F or Cmd+F) to find specific keywords like \"shuttle\", \"parking fee\", or \"cancellation\".\n*   **Support maturity:** `UNKNOWN`. The website provides multiple email addresses and a primary phone number for inquiries but does not state specific support hours or expected response times.\n\n## 5) Taxonomy & Topics (The Core Encyclopedia)\n\n### Property Overview & Brand\n\n### [EntryID: property-overview] Hotel Overview\n**Category:** Property Overview & Brand\n**Summary:** Hotel Le Agavi is a 5-star luxury hotel in Positano, located on the Amalfi Coast. Founded by Aldo Capilongo, the hotel is built into the cliffside across 11 terraced levels, offering panoramic sea views. It features a private beach, a Michelin-starred restaurant, a spa, and is connected internally by a funicular.\n**Key Facts:**\n- **Hotel Name:** Hotel Le Agavi\n- **Star Rating:** 5-star\n- **Location:** Positano (SA), Italy, on the Amalfi Coast\n- **Structure:** Spans 11 levels of terraces overlooking the sea.\n- **Key Features:** Private beach (Remmese Beach House), two restaurants (La Serra and Remmese), three bars, Alma Spa, outdoor pool, private funicular for internal transport.\n- **Brand Identity:** Focuses on luxury, heartfelt hospitality, and a deep connection to the Amalfi Coast, celebrating the vision of its founder, Aldo Capilongo.\n**Canonical Details & Policies:**\n\"Nestled in the timeless beauty of the Amalfi Coast, Hotel Le Agavi in Positano spans terraces overlooking the sea, offering you a breathtaking 360° view of the entire bay. A 5-star hotel that envelops you in tranquility, removed from the bustling streets of the historic center, yet close enough to immerse yourself in the true essence of Positano.\"\n**Sources:** [<hotel-le-agavi-positano-5-star-luxury>, <hotel-le-agavi-positano-5-stelle-luxury>, <luxury-hotel-in-positano-aldos-legacy-at-hotel-le-agavi-on-the-amalfi-coast>]\n\n### Rooms & Suites\n\n### [EntryID: room-amenities-all] General Room & Suite Amenities\n**Category:** Rooms & Suites\n**Summary:** All rooms and suites at the hotel are equipped with a standard set of luxury amenities, including a furnished balcony with a sea view, an Illy Espresso machine, and a Smart TV. Each accommodation is designed with materials like wood, marble, and Vietri majolica tiles to reflect the coastal setting.\n**Key Facts:**\n- **Standard in all rooms:**\n  - Furnished balcony with sea view\n  - Illy Espresso machine & Electric Kettle\n  - Smart TV with Satellite & Sky channels\n  - Minibar\n  - Wi-Fi\n  - Air conditioning\n  - Safe\n  - Direct-dial phone\n  - Luxury Toiletries\n  - Slippers and bathrobe\n**Sources:** [<rooms-and-suites-positano-hotel-le-agavi-5-star-luxury>, <camere-e-suite-positano-hotel-le-agavi-5-stelle-luxury>]\n\n### [EntryID: room-classic] Classic Room\n**Category:** Rooms & Suites\n**Summary:** The Classic Room is the hotel's entry-level room type, sized at 26 square meters and accommodating up to 2 guests. It features a classic style with Mediterranean influences, Vietri majolica floors, and a private balcony with a sea view.\n**Key Facts:**\n- **Size:** 26 m²\n- **Occupancy:** 2 guests\n- **Features:** Balcony with sea view, pastel-toned fabrics, Vietri majolica floors.\n- **Amenities:** Includes all general room amenities.\n**Sources:** [<classic-room-hotel-le-agavi-positano-5-star-luxury>, <camera-classic-hotel-le-agavi-positano-5-stelle-luxury>]\n\n### [EntryID: room-deluxe] Deluxe Room\n**Category:** Rooms & Suites\n**Summary:** The Deluxe Room is 38 square meters and accommodates 2 guests. It embodies Positano's style with a blue color palette and features a generously appointed terrace with a sea view, complete with a sun bed and umbrella.\n**Key Facts:**\n- **Size:** 38 m²\n- **Occupancy:** 2 guests\n- **Features:** Large terrace with sea view, sun bed, and umbrella.\n- **Amenities:** Includes all general room amenities plus Coffee and a selection of teas.\n**Sources:** [<deluxe-room-hotel-le-agavi-positano-5-star-luxury>]\n\n### [EntryID: room-junior-suite] Junior Suite\n**Category:** Rooms & Suites\n**Summary:** The Junior Suite is a spacious 50-square-meter room for 2 guests. It offers panoramic sea views from every window and a secluded terrace with armchairs, sun loungers, and tables. The bathroom features either a jacuzzi or a waterfall shower head.\n**Key Facts:**\n- **Size:** 50 m²\n- **Occupancy:** 2 guests\n- **Features:** Terrace with lounge area and sea view, sofa, bathroom with Jacuzzi or waterfall shower head, umbrella with sun beds.\n- **Amenities:** Includes all general room amenities plus Coffee and a selection of teas.\n**Sources:** [<junior-suite-hotel-le-agavi-positano-5-star-luxury>, <junior-suite-hotel-le-agavi-positano-5-stelle-luxury>]\n\n### [EntryID: room-suite] Suite\n**Category:** Rooms & Suites\n**Summary:** The Suite is a 70-square-meter accommodation for 2 guests, described as a haven of luxury. It includes a cozy living room and a sea-view terrace with sofas and sun beds. The bathroom features either a jacuzzi or a shower with a mini waterfall for cervical massage.\n**Key Facts:**\n- **Size:** 70 m²\n- **Occupancy:** 2 guests\n- **Features:** Terrace with sea view, elegant living area, umbrella with sun beds, Jacuzzi or waterfall shower head.\n- **Toiletries:** \"Premium\" Toiletries.\n- **Amenities:** Includes all general room amenities plus Coffee and a selection of teas.\n**Sources:** [<suites-hotel-le-agavi-positano-5-star-luxury>, <suite-hotel-le-agavi-positano-5-stelle-luxury>]\n\n### [EntryID: room-executive-suite] Executive Suite\n**Category:** Rooms & Suites\n**Summary:** The Executive Suite is an 85-square-meter retreat for 2 guests, including a 25 m² terrace, one of the largest on the property. It features curated furnishings, a spacious living area, and a bathroom with dual basins and a rain shower. This suite comes with signature services like a dedicated concierge.\n**Key Facts:**\n- **Size:** 85 m² (including a 25 m² terrace)\n- **Occupancy:** 2 guests\n- **Features:** Expansive terrace with sunbeds, shaded umbrella, and dining table.\n- **Toiletries:** Amouage toiletries.\n- **Signature Services:**\n  - Dedicated Concierge\n  - Reserved tables at La Serra and Remmese restaurants\n  - Reserved sun loungers at the private beach and pool\n**Sources:** [<executive-suite-at-hotel-le-agavi-85-m-with-panoramic-sea-views>, <executive-suite-presso-hotel-le-agavi-85-m-con-vista-panoramica-sul-mare>]\n\n### [EntryID: room-alma-suite] Alma Suite\n**Category:** Rooms & Suites\n**Summary:** The Alma Suite is the hotel's largest accommodation at 150 square meters, designed for up to 4 guests, making it ideal for families. It consists of two independent areas (a master suite and a junior suite) connected by a private foyer. It features expansive terraces and includes exclusive signature services.\n**Key Facts:**\n- **Size:** 150 m²\n- **Occupancy:** 4 guests\n- **Layout:** Comprises a master suite and a junior suite connected by a private entrance.\n- **Features:** Expansive terraces with sun loungers, seating, and a dining table. The master suite's bathroom has a rainfall shower.\n- **Signature Services:**\n  - Dedicated Concierge\n  - Reserved tables at La Serra and Remmese restaurants\n  - Reserved sun loungers at the private beach and pool\n  - Complimentary one-hour couples massage at the spa (subject to availability)\n**Sources:** [<alma-suite-hotel-le-agavi>, <alma-suite-hotel-le-agavi-2>]\n\n### Rates, Packages & Promotions\n\n### [EntryID: booking-perks-direct] Direct Booking Benefits\n**Category:** Rates, Packages & Promotions\n**Summary:** Guests who book their stay directly on the hotel's official website receive several complimentary benefits. These perks are consistently advertised across the site.\n**Key Facts:**\n- **Best rate guaranteed**\n- **Complimentary spa products**\n- **Prosecco and fruit upon arrival**\n**Sources:** [<hotel-le-agavi-positano-5-star-luxury>, <privacy-policy-hotel-le-agavi-positano>, <deluxe-room-hotel-le-agavi-positano-5-star-luxury>, <classic-room-hotel-le-agavi-positano-5-star-luxury>, <suites-hotel-le-agavi-positano-5-star-luxury>, <hotel-le-agavi-positano-5-stelle-luxury>, <and-43-others>]\n\n### [EntryID: package-special-deals] Special Deals\n**Category:** Rates, Packages & Promotions\n**Summary:** A general promotional offer for a stay at Hotel Le Agavi. It includes accommodation, breakfast, and access to the private beach and panoramic pool.\n**Key Facts:**\n- **Inclusions:**\n  - Stay in a room of your choice\n  - Rich buffet breakfast\n  - Private beach access\n  - Panoramic pool access\n**Sources:** [<august-special-deals-hotel-le-agavi-positano>, <positano-offerte-speciali-hotel-le-agavi-positano>]\n\n### [EntryID: package-honeymoon] Honeymoon Package\n**Category:** Rates, Packages & Promotions\n**Summary:** A 3-night package designed for honeymooners, available throughout 2025. It includes a room upgrade, romantic dinner, spa access, and a sunset boat excursion.\n**Key Facts:**\n- **Minimum Stay:** 3 nights\n- **Availability:** Throughout 2025\n- **Inclusions:**\n  - Free room upgrade\n  - Daily breakfast\n  - Welcome drink\n  - Access to pool and private beach\n  - 2-hour sunset boat excursion on \"Ayave\" with aperitif\n  - Romantic 4-course tasting dinner at the gourmet restaurant (drinks not included)\n  - Two massages and 1-hour exclusive use of the SPA\n  - Wi-Fi\n- **Booking:** Contact `booking@leagavipositano.com`.\n- **Cancellation Policy:** See entry [cancellation-policy-standard](#cancellation-policy-standard).\n**Sources:** [<honeymoon-package-hotel-le-agavi>, <pacchetto-honeymoon-hotel-le-agavi>]\n\n### [EntryID: package-capri-dream] Capri Dream Package\n**Category:** Rates, Packages & Promotions\n**Summary:** A 3-night package available throughout 2025, featuring a full-day group boat tour to Capri on the hotel's \"Ayave\" boat.\n**Key Facts:**\n- **Minimum Stay:** 3 nights\n- **Availability:** Throughout 2025\n- **Inclusions:**\n  - Free room upgrade\n  - Daily breakfast\n  - Welcome drink\n  - Access to pool and private beach\n  - Full-day group excursion to Capri on \"Ayave\" boat, including swimming stops, visit to Green Grotto, and sunset aperitif\n  - Wi-Fi\n- **Booking:** Contact `booking@leagavipositano.com`.\n- **Cancellation Policy:** See entry [cancellation-policy-standard](#cancellation-policy-standard).\n**Sources:** [<capri-dream-package-hotel-le-agavi>, <pacchetto-capri-dream-hotel-le-agavi>]\n\n### [EntryID: package-towards-heaven] Towards Heaven Package\n**Category:** Rates, Packages & Promotions\n**Summary:** A 3-night package focused on nature and relaxation, available throughout 2025. The main highlight is an excursion along the famous Path of the Gods hiking trail.\n**Key Facts:**\n- **Minimum Stay:** 3 nights\n- **Availability:** Throughout 2025\n- **Inclusions:**\n  - Free room upgrade\n  - Daily breakfast\n  - Welcome drink\n  - Excursion to the Path of the Gods\n  - Two massages\n  - Access to pool and private beach\n  - Wi-Fi\n- **Booking:** Contact `booking@leagavipositano.com`.\n- **Cancellation Policy:** See entry [cancellation-policy-standard](#cancellation-policy-standard).\n**Sources:** [<towards-heaven-package-hotel-le-agavi>]\n\n### [EntryID: package-gourmet-cuisine] Gourmet Cuisine Package\n**Category:** Rates, Packages & Promotions\n**Summary:** A 3-night package for food and wine lovers, available throughout 2025. It includes a wine tasting and a romantic dinner prepared by the Michelin-starred Chef.\n**Key Facts:**\n- **Minimum Stay:** 3 nights\n- **Availability:** Throughout 2025\n- **Inclusions:**\n  - Free room upgrade\n  - Daily breakfast\n  - Welcome drink\n  - Tasting of five wines with gourmet finger food\n  - Romantic 4-course tasting dinner at the gourmet restaurant (drinks not included)\n  - Access to pool and private beach\n  - Wi-Fi\n- **Booking:** Contact `booking@leagavipositano.com`.\n- **Cancellation Policy:** See entry [cancellation-policy-standard](#cancellation-policy-standard).\n**Sources:** [<gourmet-cuisine-package-positano-hotel-le-agavi>, <pacchetto-gourmet-cuisine-hotel-le-agavi>, <pacchetto-gourmet-cuisine-hotel-le-agavi-2>]\n\n### [EntryID: package-wellness-retreat] Wellness Retreat Package\n**Category:** Rates, Packages & Promotions\n**Summary:** A 4-night wellness-focused package available in April and October 2025. It includes accommodation in a Deluxe Room, healthy meals, daily spa treatments, an in-room yoga set, and airport transfers.\n**Key Facts:**\n- **Duration:** 4 nights (can be tailored)\n- **Availability:** April & October 2025\n- **Accommodation:** Deluxe Room\n- **Inclusions:**\n  - Daily breakfast\n  - Round-trip transfers from Naples Airport\n  - Daily healthy lunch at Remmese\n  - 2 hours of spa treatments per day\n  - Daily sunset aperitivo\n  - In-room yoga set\n  - Light evening snacks delivered to room\n  - Welcome gift of wellness essentials\n- **Booking:** Contact `booking@leagavipositano.com`.\n- **Cancellation Policy:** See entry [cancellation-policy-strict](#cancellation-policy-strict).\n**Sources:** [<rejuvenate-reflect-luxury-wellness-retreat-package-on-the-amalfi-coast-hotel-le-agavi>, <rigenerati-contemplando-pacchetto-di-benessere-sulla-costiera-amalfitana-hotel-le-agavi>]\n\n### [EntryID: package-positano-paradise] Positano Paradise Escape Package\n**Category:** Rates, Packages & Promotions\n**Summary:** A comprehensive 7-night luxury package available for the entire 2025 season. It includes a Junior Suite, multiple dining experiences, a private boat tour, and airport transfers.\n**Key Facts:**\n- **Duration:** 7 nights (can be tailored)\n- **Availability:** April 1st - October 31st, 2025\n- **Accommodation:** Junior Suite\n- **Inclusions:**\n  - Daily breakfast\n  - Round-trip transfers from Naples Airport\n  - Daily lunch at Remmese\n  - One gourmet dinner at La Serra with wine pairings\n  - Daily sunset aperitivo\n  - 4-hour private boat tour on \"Agave\" with prosecco\n  - Exclusive access to Remmese Beach House and pool with reserved sunbeds\n  - Welcome gift of Champagne & local delicacies\n- **Booking:** Contact `booking@leagavipositano.com`.\n- **Cancellation Policy:** See entry [cancellation-policy-strict](#cancellation-policy-strict).\n**Sources:** [<luxury-positano-paradise-escape-7-night-amalfi-coast-getaway-at-hotel-le-agavi>, <paradiso-positano-retreat-di-lusso-7-notti-sulla-costiera-amalfitana-presso-hotel-le-agavi>]\n\n### [EntryID: package-haute-couture] Haute Couture Escape Package\n**Category:** Rates, Packages & Promotions\n**Summary:** A unique 7-night package available for the 2025 season, combining a luxury stay with a bespoke Italian tailoring experience. Includes a custom-made suit, dining, and extensive spa access.\n**Key Facts:**\n- **Duration:** 7 nights (can be tailored)\n- **Availability:** 2025 season\n- **Accommodation:** Junior Suite\n- **Inclusions:**\n  - Daily breakfast\n  - Round-trip transfers from Naples Airport\n  - One gourmet lunch at Remmese\n  - One gourmet dinner at La Serra with wine pairings\n  - Exclusive use of the SPA for 1 hour per day for 5 days\n  - Exclusive access to Remmese Beach House and pool with reserved sunbeds\n  - Welcome gift of Champagne & local delicacies\n  - A custom-made suit crafted from premium wool by master tailors\n- **Booking:** Contact `booking@leagavipositano.com`.\n- **Cancellation Policy:** See entry [cancellation-policy-strict](#cancellation-policy-strict).\n**Sources:** [<haute-couture-escape-luxury-tailored-retreat-on-the-amalfi-coast-hotel-le-agavi>]\n\n### [EntryID: package-august-escape] August 2025: Luxurious Escape Package\n**Category:** Rates, Packages & Promotions\n**Summary:** A 7-night luxury package specifically for August 2025. It includes accommodation in a Classic or Deluxe room, dining experiences, a full-day private yacht excursion, daily spa access, and airport transfers.\n**Key Facts:**\n- **Duration:** 7 nights (can be tailored)\n- **Availability:** August 2025\n- **Accommodation:** Classic or Deluxe Room\n- **Inclusions:**\n  - Daily breakfast\n  - Round-trip private car transfers from Naples Airport\n  - One gourmet lunch at Remmese\n  - One gourmet dinner at La Serra with wine pairings\n  - Daily sunset aperitivo for two\n  - Full-day private yacht tour to Capri and the Amalfi Coast with prosecco\n  - Reserved sunbeds at Remmese Beach House and pool\n  - One hour of daily access to the SPA\n  - Welcome gift of Prosecco & local sweets\n- **Booking:** Contact `booking@leagavipositano.com`.\n- **Cancellation Policy:** See entry [cancellation-policy-strict](#cancellation-policy-strict).\n**Sources:** [<agosto-pacchetto-fuga-di-lusso-pacchetto-esclusivo-di-lusso-per-agosto-allhotel-le-agavi-7-notti-sulla-costiera-amalfitana>]\n\n### Reservations & Booking Policies\n\n### [EntryID: reservations-packages] Package Reservations\n**Category:** Reservations & Booking Policies\n**Summary:** All special packages and offers must be booked by contacting the hotel's booking team directly via email. Reservations for included services like dining, spa, and tours must be made in advance.\n**Key Facts:**\n- **Booking Channel:** Email to `booking@leagavipositano.com`.\n- **Advance Reservations:** Guests must book included services (spa, dinner, boat tours, sunbeds) in advance to ensure availability.\n- **Card Guarantee:** For restaurant reservations for non-hotel guests, a non-prepaid credit card is required as a guarantee.\n- **Payment:** For packages, the full booking amount is required 21 or 45 days before arrival via a payment link. The hotel will verify the card's validity at the time of booking.\n**Sources:** [<honeymoon-package-hotel-le-agavi>, <capri-dream-package-hotel-le-agavi>, <gourmet-cuisine-package-positano-hotel-le-agavi>, <la-serra-gourmet-restaurant-positano-hotel-le-agavi-5-stars-l>, <luxury-positano-paradise-escape-7-night-amalfi-coast-getaway-at-hotel-le-agavi>]\n\n### Check-In / Check-Out & Front Desk\n\n### [EntryID: check-in-out-times] Check-In & Check-Out Times\n**Category:** Check-In / Check-Out & Front Desk\n**Summary:** The hotel has standard check-in and check-out times. Early or late options are subject to availability.\n**Key Facts:**\n- **Check-In Time:** 14:00 (2:00 PM)\n- **Check-Out Time:** 12:00 PM\n- **Early Check-In / Late Check-Out:** Subject to availability and must be requested.\n**Sources:** [<honeymoon-package-hotel-le-agavi>, <capri-dream-package-hotel-le-agavi>, <gourmet-cuisine-package-positano-hotel-le-agavi>, <luxury-positano-paradise-escape-7-night-amalfi-coast-getaway-at-hotel-le-agavi>]\n\n### Guest Services & Amenities\n\n### [EntryID: funicular-internal] Internal Funicular\n**Category:** Guest Services & Amenities\n**Summary:** Due to the hotel's structure across 11 terraced levels, an internal funicular is provided for guest convenience. It connects the lobby terrace, the viewpoint, and the private beach.\n**Key Facts:**\n- **Purpose:** To facilitate movement between the hotel's different levels.\n- **Route:** Connects the main lobby area down to the beach level.\n- **Experience:** Offers panoramic views of the Positano coastline during the ride.\n**Sources:** [<hotel-services-positano-hotel-le-agavi-5-stars-l>, <servizi-hotel-positano-hotel-le-agavi-5-stelle-l>]\n\n### [EntryID: concierge-services] Concierge & Guest Relations\n**Category:** Guest Services & Amenities\n**Summary:** The hotel provides concierge and guest relations services to arrange activities and transportation. The Executive and Alma suites include a dedicated concierge.\n**Key Facts:**\n- **Services:** Assistance with inquiries, arranging car/scooter rentals, booking water taxis and boat tours.\n- **Contact:** Reception staff or `guestrelations@agavi.it` for tour/event inquiries.\n- **Dedicated Concierge:** Available for guests in the Executive Suite and Alma Suite.\n**Sources:** [<hotel-services-positano-hotel-le-agavi-5-stars-l>, <servizi-hotel-positano-hotel-le-agavi-5-stelle-l>, <executive-suite-at-hotel-le-agavi-85-m-with-panoramic-sea-views>, <alma-suite-hotel-le-agavi>]\n\n### Dining, Bars & Room Service\n\n### [EntryID: restaurant-la-serra] La Serra Restaurant\n**Category:** Dining, Bars & Room Service\n**Summary:** La Serra is the hotel's gourmet, Michelin-starred restaurant, led by Chef Alberto Annarumma. It offers a menu that reinvents Mediterranean traditions with a contemporary flair. The venue features an indoor dining room and an outdoor terrace with sea views.\n**Key Facts:**\n- **Cuisine:** Gourmet, Mediterranean, International.\n- **Chef:** Alberto Annarumma.\n- **Meals Served:** Breakfast, Lunch, Dinner.\n- **Hours:**\n  - Breakfast: 7:00 AM - 11:00 AM (Daily)\n  - Lunch: 1:00 PM - 2:30 PM (Tuesday - Sunday)\n  - Dinner: 7:30 PM - 10:30 PM (Tuesday - Sunday)\n- **Reservation Policy:** Highly recommended for external guests. A credit card guarantee is required. A fee of €80.00 per person is charged for cancellations within 72 hours or for no-shows.\n- **Wine Cellar:** Curated selection of Italian and international wines, including organic, natural, and kosher options. Sommelier available.\n- **Contact:** `laserra@agavi.it` or [+39 089 875733](tel:+39 089 875733).\n**Sources:** [<la-serra-gourmet-restaurant-positano-hotel-le-agavi-5-stars-l>, <ristorante-gourmet-la-serra-positano-hotel-le-agavi-5-stelle-l>, <undefined-5>, <undefined-6>]\n\n### [EntryID: restaurant-remmese] Remmese Restaurant\n**Category:** Dining, Bars & Room Service\n**Summary:** Remmese is the hotel's seaside restaurant located at the Remmese Beach House. Its name means \"fairy tale\" in Hungarian. The cuisine focuses on Amalfi culinary traditions, featuring fresh local produce and seafood.\n**Key Facts:**\n- **Cuisine:** Traditional Amalfi, Seafood.\n- **Location:** At the private beach club.\n- **Meals Served:** Lunch, Dinner.\n- **Hours:**\n  - Lunch: 12:30 PM - 3:00 PM (Daily) / 1:00 PM - 4:00 PM (per beach house page)\n  - Dinner: 7:30 PM - 10:30 PM (Daily, except Tuesdays)\n- **Specialties:** Catch of the day, seafood appetizers, Limoncello Babà.\n- **Access:** Can be reached by sea or by the hotel's funicular.\n- **Contact:** `remmese@agavi.it` or [+39 089 875733](tel:+39 089 875733).\n**Known Issues / Contradictions:** Lunch hours are listed as 12:30 PM-3:00 PM on the restaurant page and 1:00 PM-4:00 PM on the beach house page. [<remmese-beach-restaurant-positano-hotel-le-agavi-5-stars-l>, <remmese-beach-house-private-beach-in-positano-hotel-le-agavi>]\n**Sources:** [<remmese-beach-restaurant-positano-hotel-le-agavi-5-stars-l>, <ristorante-sul-mare-remmese-positano-hotel-le-agavi-5-stelle-l>, <undefined-2>, <undefined-3>]\n\n### [EntryID: bar-hall] Hall Bar\n**Category:** Dining, Bars & Room Service\n**Summary:** The Hall Bar is the hotel's main cocktail bar, located near the reception on the highest floor. It features a panoramic terrace overlooking the bay of Positano.\n**Key Facts:**\n- **Location:** Near reception, highest floor.\n- **Hours:** 12:00 PM - 1:00 AM (Daily)\n- **Menu:** Cocktails, drinks.\n**Sources:** [<lounge-pool-and-beach-bar-positano-hotel-le-agavi-5-star-luxury>, <lounge-pool-e-beach-bar-positano-hotel-le-agavi-5-stelle-luxury>]\n\n### [EntryID: bar-pool] The Pool Space (Pool Bar)\n**Category:** Dining, Bars & Room Service\n**Summary:** The Pool Space is the bar located by the hotel's main pool. It serves snacks, drinks, ice cream, and light lunches under ancient stone arches or on a panoramic terrace.\n**Key Facts:**\n- **Location:** By the main swimming pool.\n- **Hours:** 12:00 PM - 7:00 PM (Daily) / 12:00 PM - 6:00 PM (per pool page)\n- **Menu:** Salads, club sandwiches, cold dishes, snacks, drinks.\n**Known Issues / Contradictions:** Closing time is listed as 7 PM on the bar page and 6 PM on the pool page. [<lounge-pool-and-beach-bar-positano-hotel-le-agavi-5-star-luxury>, <hotel-with-pool-in-positano-hotel-le-agavi-5-star-luxury>]\n**Sources:** [<lounge-pool-and-beach-bar-positano-hotel-le-agavi-5-star-luxury>, <lounge-pool-e-beach-bar-positano-hotel-le-agavi-5-stelle-luxury>, <hotel-with-pool-in-positano-hotel-le-agavi-5-star-luxury>, <undefined-4>]\n\n### [EntryID: bar-remmese] Remmese Beach Bar\n**Category:** Dining, Bars & Room Service\n**Summary:** Located at the Remmese Beach House, this bar is situated on wooden piers within the beach club. It serves refreshing drinks, snacks, and aperitifs.\n**Key Facts:**\n- **Location:** At the Remmese Beach House.\n- **Hours:** 9:00 AM - 10:30 PM (Daily)\n- **Menu:** Drinks, snacks, cocktails.\n**Sources:** [<lounge-pool-and-beach-bar-positano-hotel-le-agavi-5-star-luxury>, <remmese-beach-house-private-beach-in-positano-hotel-le-agavi>, <lounge-pool-e-beach-bar-positano-hotel-le-agavi-5-stelle-luxury>]\n\n### [EntryID: breakfast-service] Breakfast\n**Category:** Dining, Bars & Room Service\n**Summary:** A rich buffet breakfast is served daily at La Serra restaurant, featuring a variety of homemade and local products.\n**Key Facts:**\n- **Location:** La Serra restaurant.\n- **Hours:** 7:00 AM - 11:00 AM (Daily).\n- **Format:** Buffet.\n- **Offerings:** Homemade cakes and jams, fresh bread, seasonal fruit, local cheeses, honey from Country House Rifugio degli Dei, espresso, cappuccino, fruit juices.\n**Sources:** [<hotel-services-positano-hotel-le-agavi-5-stars-l>, <servizi-hotel-positano-hotel-le-agavi-5-stelle-l>, <la-serra-gourmet-restaurant-positano-hotel-le-agavi-5-stars-l>]\n\n### [EntryID: room-service] Room Service\n**Category:** Dining, Bars & Room Service\n**Summary:** Room service is available 24 hours a day for hotel guests, with a dedicated menu.\n**Key Facts:**\n- **Availability:** 24/7\n- **Menu:** A special room service menu is available.\n**Sources:** [<la-serra-gourmet-restaurant-positano-hotel-le-agavi-5-stars-l>, <ristorante-gourmet-la-serra-positano-hotel-le-agavi-5-stelle-l>]\n\n### Spa, Pool, Fitness & Recreation\n\n### [EntryID: spa-alma] Alma Spa & Beauty\n**Category:** Spa, Pool, Fitness & Recreation\n**Summary:** Alma Spa & Beauty is the hotel's wellness center, offering a range of facilities and treatments. It can be booked for exclusive private use. The spa uses products with organic and natural ingredients.\n**Key Facts:**\n- **Name:** Alma Spa & Beauty\n- **Hours:** 10:00 AM - 6:00 PM\n- **Operating Season:** April 1st to October 31st\n- **Facilities:** Sauna, Turkish bath, Whirlpool, Emotional shower, Ice fountain, Relaxation area.\n- **Treatments:** Massages, facial and body treatments, \"Dry brushing with agave fibers\".\n- **Private Use:** The spa can be booked exclusively for one hour for two people, with an optional aperitif service.\n- **Contact:** `almaspa@leagavipositano.com` or [+39 089 875733](tel:+39 089 875733).\n**Sources:** [<alma-spa-beauty-spa-and-gym-positano-hotel-le-agavi>, <alma-spa-beauty-spa-e-palestra-positano-hotel-le-agavi>]\n\n### [EntryID: massage-outdoor] Outdoor Massage Corner\n**Category:** Spa, Pool, Fitness & Recreation\n**Summary:** The hotel offers an open-air massage corner located on a sea-view terrace. This space is secluded by linen curtains and allows guests to receive massages amidst Mediterranean foliage.\n**Key Facts:**\n- **Location:** Secluded outdoor terrace overlooking the sea.\n- **Availability:** Single or couples massages.\n**Sources:** [<alma-spa-beauty-spa-and-gym-positano-hotel-le-agavi>, <alma-spa-beauty-spa-e-palestra-positano-hotel-le-agavi>]\n\n### [EntryID: gym-fitness] Gym / Fitness Area\n**Category:** Spa, Pool, Fitness & Recreation\n**Summary:** The hotel has an outdoor fitness area located on a terrace overlooking the pool. It is equipped with modern Technogym equipment.\n**Key Facts:**\n- **Location:** Outdoor terrace, overlooking the pool.\n- **Equipment:** Technogym.\n- **Hours:** 9:00 AM - 7:00 PM\n- **Admission:** Free for hotel guests.\n- **Personal Trainer:** Available for booking.\n**Sources:** [<alma-spa-beauty-spa-and-gym-positano-hotel-le-agavi>, <alma-spa-beauty-spa-e-palestra-positano-hotel-le-agavi>]\n\n### [EntryID: pool-main] Main Swimming Pool\n**Category:** Spa, Pool, Fitness & Recreation\n**Summary:** The main outdoor swimming pool overlooks the bay of Positano and is heated to a constant temperature. It features a 1970s-style design and includes a solarium area and a separate mini-pool for children.\n**Key Facts:**\n- **Hours:** 9:30 AM - 7:00 PM\n- **Operating Season:** April to September\n- **Temperature:** Heated to a constant 28°C.\n- **Size:** 90 m², maximum depth of 2.30 meters.\n- **Features:** Includes a sunny solarium area and a separate shallow mini-pool for children.\n- **Associated Outlet:** The Pool Space bar is located nearby.\n**Sources:** [<hotel-with-pool-in-positano-hotel-le-agavi-5-star-luxury>, <hotel-con-piscina-a-positano-hotel-le-agavi-5-stelle-luxury>]\n\n### [EntryID: beach-club-remmese] Remmese Beach House\n**Category:** Spa, Pool, Fitness & Recreation\n**Summary:** Remmese Beach House is the hotel's private beach club, exclusive to guests. It features a wooden sun deck on a white pebble beach, a bar, and a restaurant. Access is provided via private elevators (the hotel's funicular).\n**Key Facts:**\n- **Name:** Remmese Beach House\n- **Access:** Exclusive for hotel guests, via private funicular.\n- **Operating Season:** May 15th to October 15th (except for natural/unforeseen events).\n- **Hours:** 9:00 AM - 8:00 PM\n- **Features:** Wooden sun deck, sun beds, umbrellas, white pebble beach.\n- **Facilities:** Remmese Restaurant and Remmese Beach Bar.\n**Sources:** [<remmese-beach-house-private-beach-in-positano-hotel-le-agavi>, <remmese-beach-house-spiaggia-privata-a-positano-hotel-le-agavi>]\n\n### [EntryID: boat-tours] Boat Tours & Excursions\n**Category:** Spa, Pool, Fitness & Recreation\n**Summary:** The hotel organizes exclusive boat tours to explore the Amalfi Coast, Capri, and other destinations. Tours are conducted on the hotel's boats, \"Ayave\" and \"Capriccio\".\n**Key Facts:**\n- **Boats:**\n  - **Ayave:** A 12m Gozzo Offshore boat with lounges, kitchen, bedroom, AC, and 880hp engine.\n  - **Capriccio:** A classic Sorrentine boat.\n- **Tour Options:**\n  - **Capri Tour:** 10 AM - 6 PM. Includes stop at Faraglioni, lunch, and free time in Capri.\n  - **Amalfi Tour:** 10 AM - 6 PM. Includes stops at Fiordo di Furore, Conca dei Marini, and visit to the Emerald Grotto.\n  - **The Blue Grotto Tour:** 10 AM - 6 PM. Navigation to Capri, swimming stops, tour of White & Blue Grottos, free time in Capri.\n  - **Emerald Grotto Tour:** 9 AM - 1 PM. Includes swimming stops, Fiordo di Furore, and optional scuba diving at Isca.\n- **Booking:** Contact `guestrelations@agavi.it`.\n**Sources:** [<boat-trips-positano-hotel-le-agavi-5-stars-l>, <escursioni-in-barca-positano-hotel-le-agavi-5-stelle-l>]\n\n### Parking, Transportation & Directions\n\n### [EntryID: parking-main] Private Parking\n**Category:** Parking, Transportation & Directions\n**Summary:** The hotel provides a secure, private parking lot on the premises for guests.\n**Key Facts:**\n- **Availability:** Yes, private parking is available for guests.\n- **Cost:** €55 per day.\n**Sources:** [<hotel-services-positano-hotel-le-agavi-5-stars-l>, <servizi-hotel-positano-hotel-le-agavi-5-stelle-l>]\n\n### [EntryID: shuttle-service] Shuttle Bus Service\n**Category:** Parking, Transportation & Directions\n**Summary:** A complimentary shuttle bus service runs hourly, connecting the hotel to the center of Positano.\n**Key Facts:**\n- **Service:** Connects the hotel to the center of Positano.\n- **Cost:** Free for all guests.\n- **Stop in Positano:** Parco Cascone.\n- **Duration:** 10-minute ride.\n- **Schedule:**\n  - First shuttle from hotel: 8:30 AM\n  - Last shuttle from Positano: 00:20 (12:20 AM)\n**Sources:** [<hotel-services-positano-hotel-le-agavi-5-stars-l>, <servizi-hotel-positano-hotel-le-agavi-5-stelle-l>]\n\n### [EntryID: transfers-airport-station] Private Transfers\n**Category:** Parking, Transportation & Directions\n**Summary:** The hotel offers a private transfer service for guests to and from major airports, ports, and train stations in the area.\n**Key Facts:**\n- **Service:** Private transfers available.\n- **Destinations:** Main airports (e.g., Naples Capodichino), ports, and train stations.\n- **Booking:** Can be arranged through the hotel.\n**Sources:** [<hotel-services-positano-hotel-le-agavi-5-stars-l>, <servizi-hotel-positano-hotel-le-agavi-5-stelle-l>]\n\n### [EntryID: rentals-car-scooter] Car and Scooter Rental\n**Category:** Parking, Transportation & Directions\n**Summary:** Guests can arrange for car and scooter rentals through the hotel's reception staff to explore the Amalfi Coast.\n**Key Facts:**\n- **Service:** Car and scooter rental.\n- **Booking:** Arrange through the reception staff.\n**Sources:** [<hotel-services-positano-hotel-le-agavi-5-stars-l>, <servizi-hotel-positano-hotel-le-agavi-5-stelle-l>]\n\n### [EntryID: water-taxi] Water Taxi Service\n**Category:** Parking, Transportation & Directions\n**Summary:** The hotel offers a water taxi service for direct journeys from the port to Positano center or nearby beaches. Exclusive trips to other coastal destinations can also be reserved.\n**Key Facts:**\n- **Service:** Water taxi for local transport.\n- **Destinations:** Positano center, nearby beaches, Amalfi, Praiano, and Nerano.\n- **Booking:** Reserve through the reception staff.\n**Sources:** [<hotel-services-positano-hotel-le-agavi-5-stars-l>, <servizi-hotel-positano-hotel-le-agavi-5-stelle-l>]\n\n### [EntryID: directions-to-hotel] Directions to Hotel Le Agavi\n**Category:** Parking, Transportation & Directions\n**Summary:** Detailed instructions for reaching the hotel by car, plane, train, and boat from the Naples area.\n**Canonical Details & Policies:**\n- **By car:** From Naples, take the A3 highway to the Castellammare di Stabia exit. Follow Route 145 towards the Amalfi Coast, then signs for Positano on SS163. The hotel entrance is marked by three flags just before the town center.\n- **By plane (from Naples Airport):**\n  - **Bus:** Take the Curreri Viaggi bus to Sorrento station, then a SITA bus to Positano (approx. 2h 5m total).\n  - **Train/Bus:** Take the Circumvesuviana train to Sorrento, then a SITA bus or ferry to Positano.\n  - **Private Transfer:** Bookable through the hotel.\n- **By train (from Napoli Centrale):** Take the Circumvesuviana train to Sorrento. From Sorrento, take a SITA bus (approx. 50 min) or a ferry (approx. 30 min) to Positano.\n- **By boat (from Naples):** From May to October, high-speed ferries (NLG) and hydrofoils (Alilauro) depart from Beverello pier, reaching Positano in about 2 hours.\n**Sources:** [<positano-and-surroundings-hotel-le-agavi-5-stars-l>, <cosa-vedere-a-positano-e-dintorni-hotel-le-agavi-5-stelle-l>]\n\n### Meetings, Events & Weddings\n\n### [EntryID: events-weddings] Weddings\n**Category:** Meetings, Events & Weddings\n**Summary:** Hotel Le Agavi serves as a venue for weddings, offering several indoor and outdoor locations with sea views. The hotel provides comprehensive services, including custom catering by Chef Alberto Annarumma and wedding planning assistance.\n**Key Facts:**\n- **Experience:** Staff has thirty years of experience in organizing banquets.\n- **Ceremony/Reception Venues:**\n  - Sala degli Specchi\n  - Remmese Beach Club\n  - Panoramic terrace\n- **Services Offered:**\n  - Custom menus\n  - Buffet appetizers\n  - Lunch or dinner reception\n  - Cake cutting on the terrace\n  - Exclusive use of the Beach Club\n  - Wedding planner available upon request\n  - Special accommodation for the couple (Suite with panoramic view, champagne, fruit basket)\n**Sources:** [<weddings-and-private-parties-positano-hotel-le-agavi-5-stars-l>, <matrimoni-e-party-privati-positano-hotel-le-agavi-5-stelle-l>]\n\n### [EntryID: events-business] Business Events & Meetings\n**Category:** Meetings, Events & Weddings\n**Summary:** The hotel accommodates business meetings, conferences, and corporate events in its main venue, the \"Sala degli Specchi.\" Catering services like coffee breaks and business lunches are available.\n**Key Facts:**\n- **Main Venue:** Sala degli Specchi\n  - **Size:** 200 m²\n  - **Max Capacity:** 160 people\n  - **Arrangement Capacities:**\n    - Auditorium: 160\n    - Classroom: 160\n    - Horseshoe: 55\n    - Banquet: 100\n- **Services Offered:**\n  - Equipment available\n  - Coffee breaks on the hall terrace\n  - Light lunches at hotel restaurants\n  - Business lunch/dinner with live music (upon request)\n**Sources:** [<meetings-and-business-events-positano-hotel-le-agavi>, <meeting-ed-eventi-business-positano-hotel-le-agavi>]\n\n### Policies\n\n### [EntryID: policy-privacy] Privacy Policy\n**Category:** Policies\n**Summary:** The hotel collects and processes personal data for purposes including online sales, marketing, advertising, and customer satisfaction surveys. Data is controlled by Le Agavi Hotel a Positano Srl.\n**Key Facts:**\n- **Data Controller:** Le Agavi Hotel a Positano Srl\n- **Head Office:** Via Ruoppolo, 105 - 80128 Naples, NA, IT\n- **PEC Email:** `leagavihotelapositano@pec.agavi.it`\n- **Data Processing Purposes:** Sale via telematics, Marketing (with consent), Advertising (with consent), Customer satisfaction surveys (legitimate interest).\n- **Data Categories Collected:** Includes contact details, payment card data, bank details, personal identification numbers, user profiles, and cookie data.\n- **Data Transfer:** Data may be transferred to the United States under the EU-US Privacy Shield framework.\n- **Data Retention:** Processing duration is predefined at 1 year.\n- **Data Subject Rights:** Users have the right to access, rectify, erase, or restrict their data, withdraw consent, and lodge a complaint.\n**Sources:** [<privacy-policy-hotel-le-agavi-positano>, <privacy-policy-hotel-le-agavi-positano-2>]\n\n### Billing, Taxes & Receipts\n\n### [EntryID: billing-city-tax] City Tax\n**Category:** Billing, Taxes & Receipts\n**Summary:** A city tax is applied to guest stays and is not included in the quoted package prices.\n**Key Facts:**\n- **Amount:** €5 per person, per night.\n- **Inclusion:** This tax is not included in package rates and must be paid separately.\n**Sources:** [<honeymoon-package-hotel-le-agavi>, <capri-dream-package-hotel-le-agavi>, <gourmet-cuisine-package-positano-hotel-le-agavi>, <towards-heaven-package-hotel-le-agavi>]\n\n### Cancellations, No-Shows & Refunds\n\n### [EntryID: cancellation-policy-standard] Standard Cancellation Policy\n**Category:** Cancellations, No-Shows & Refunds\n**Summary:** This policy applies to several hotel packages. Cancellations are free of charge up to 22 days before arrival. After that, the full booking amount is charged.\n**Canonical Details & Policies:**\n- The client can cancel free of charge up to 22 days before arrival.\n- If canceled within 21 days of arrival, the full booking amount will be charged.\n- In case of a no-show, the total booking amount will also be charged.\n**Sources:** [<honeymoon-package-hotel-le-agavi>, <pacchetto-honeymoon-hotel-le-agavi>, <capri-dream-package-hotel-le-agavi>, <pacchetto-capri-dream-hotel-le-agavi>, <gourmet-cuisine-package-positano-hotel-le-agavi>, <pacchetto-gourmet-cuisine-hotel-le-agavi>, <towards-heaven-package-hotel-le-agavi>]\n\n### [EntryID: cancellation-policy-strict] Strict Cancellation Policy\n**Category:** Cancellations, No-Shows & Refunds\n**Summary:** This stricter policy applies to select, higher-value packages. It requires a 30% deposit and has a 45-day cancellation window with penalties.\n**Canonical Details & Policies:**\n- A deposit of 30% is required at the time of booking.\n- The final payment must be completed 45 days prior to arrival.\n- Cancellations made more than 45 days before arrival incur a penalty charge equal to one night’s stay.\n- Cancellations made within 45 days of arrival incur a penalty charge of 100% of the total reservation cost.\n**Sources:** [<rejuvenate-reflect-luxury-wellness-retreat-package-on-the-amalfi-coast-hotel-le-agavi>, <luxury-positano-paradise-escape-7-night-amalfi-coast-getaway-at-hotel-le-agavi>, <haute-couture-escape-luxury-tailored-retreat-on-the-amalfi-coast-hotel-le-agavi>, <agosto-pacchetto-fuga-di-lusso-pacchetto-esclusivo-di-lusso-per-agosto-allhotel-le-agavi-7-notti-sulla-costiera-amalfitana>]\n\n### Local Area & Attractions\n\n### [EntryID: attractions-nearby] Nearby Attractions & Distances\n**Category:** Local Area & Attractions\n**Summary:** The hotel is located near the center of Positano and serves as a base for exploring the Amalfi Coast and nearby islands. Distances and travel times to key points of interest are provided.\n**Key Facts:**\n- **Positano (Piazza dei Mulini & Port):** 3 km\n- **Praiano:** 8 km\n- **Sorrento:** 16 km\n- **Amalfi:** 18 km\n- **Ravello:** 35 km\n- **Salerno:** 35 km\n- **Pompeii and Herculaneum:** 35 km\n- **Capri:** 30 minutes by hydrofoil\n**Sources:** [<positano-and-surroundings-hotel-le-agavi-5-stars-l>, <cosa-vedere-a-positano-e-dintorni-hotel-le-agavi-5-stelle-l>]\n\n### Contact, Hours & Support Channels\n\n### [EntryID: company-information] Company Information\n**Category:** Contact, Hours & Support Channels\n**Summary:** The legal and corporate details for the entity that owns and operates the hotel.\n**Key Facts:**\n- **Business Name:** Le Agavi Hotel a Positano S.R.L.\n- **Hotel Address:** Via G. Marconi 171, 84017 Positano (SA) - Italy\n- **Head Office Address:** Via Ruoppolo, 105 - 80128 Naples, NA, IT\n- **VAT / F.C.:** 05576050636\n- **R.E.A.:** 450940\n- **Share Capital:** € 641,439.47 (2024)\n**Sources:** [<hotel-le-agavi-positano-5-star-luxury>, <privacy-policy-hotel-le-agavi-positano>, <deluxe-room-hotel-le-agavi-positano-5-star-luxury>, <classic-room-hotel-le-agavi-positano-5-star-luxury>, <and-43-others>]\n\n## 8) Outlets, Venues & Amenities Index\n\n| Type | Name | Brief Description (from source) | Sources |\n|---|---|---|---|\n| Restaurant | La Serra | Gourmet restaurant with a Michelin-starred Chef, celebrating Mediterranean tradition with a contemporary flair. | [<la-serra-gourmet-restaurant-positano-hotel-le-agavi-5-stars-l>] |\n| Restaurant | Remmese | Seaside restaurant at the Beach Club, offering classic Amalfi culinary traditions and seafood. | [<remmese-beach-restaurant-positano-hotel-le-agavi-5-stars-l>] |\n| Bar | Hall Bar | Cocktail bar near reception on the highest floor with a panoramic terrace. | [<lounge-pool-and-beach-bar-positano-hotel-le-agavi-5-star-luxury>] |\n| Bar | The Pool Space | Poolside bar serving snacks, drinks, and light lunches. | [<lounge-pool-and-beach-bar-positano-hotel-le-agavi-5-star-luxury>] |\n| Bar | Remmese Beach Bar | Bar located on wooden piers within the private Beach Club. | [<lounge-pool-and-beach-bar-positano-hotel-le-agavi-5-star-luxury>] |\n| Venue | Remmese Beach House | A private beach club for guests with a wooden sun deck, pebble beach, bar, and restaurant. | [<remmese-beach-house-private-beach-in-positano-hotel-le-agavi>] |\n| Venue | Sala degli Specchi | An elegant and refined 200 m² room for meetings, conferences, and weddings, with a capacity of up to 160. | [<meetings-and-business-events-positano-hotel-le-agavi>] |\n| Amenity | Alma Spa & Beauty | A sanctuary for body and mind with sauna, Turkish bath, whirlpool, and a range of treatments. | [<alma-spa-beauty-spa-and-gym-positano-hotel-le-agavi>] |\n| Amenity | Main Swimming Pool | A heated, 70s-style pool overlooking the bay of Positano, with a solarium and children's mini-pool. | [<hotel-with-pool-in-positano-hotel-le-agavi-5-star-luxury>] |\n| Amenity | Outdoor Gym | A fitness area on a terrace overlooking the pool, equipped with Technogym machines. | [<alma-spa-beauty-spa-and-gym-positano-hotel-le-agavi>] |\n| Amenity | Funicular | An internal funicular that connects the hotel's 11 terraced levels, from the lobby to the beach. | [<hotel-services-positano-hotel-le-agavi-5-stars-l>] |\n\n## 9) Contact & Support Channels\n\n- **Phone (Main):** [+39 089875733](tel:+39 089875733) (Sources: [<hotel-le-agavi-positano-5-star-luxury>, <privacy-policy-hotel-le-agavi-positano>, <and-45-others>])\n- **Email (Booking & General Inquiries):** [booking@leagavipositano.com](mailto:booking@leagavipositano.com) (Sources: [<hotel-le-agavi-positano-5-star-luxury>, <contact-us-hotel-le-agavi-positano-5-star-l>, <and-30-others>])\n- **Email (La Serra Restaurant):** [laserra@agavi.it](mailto:laserra@agavi.it) (Sources: [<hotel-le-agavi-positano-5-star-luxury>, <and-27-others>])\n- **Email (Remmese Restaurant):** [remmese@agavi.it](mailto:remmese@agavi.it) (Sources: [<hotel-le-agavi-positano-5-star-luxury>, <and-27-others>])\n- **Email (Alma Spa):** [almaspa@leagavipositano.com](mailto:almaspa@leagavipositano.com) (Sources: [<alma-spa-beauty-spa-and-gym-positano-hotel-le-agavi>, <alma-spa-beauty-spa-e-palestra-positano-hotel-le-agavi>])\n- **Email (Guest Relations/Tours):** [guestrelations@agavi.it](mailto:guestrelations@agavi.it) (Sources: [<sunset-aperitivo-at-hotel-le-agavi-positano>, <experience-the-magic-of-positanos-full-moon-nights-exclusive-events-and-enchanting-views>])\n- **PEC Email (Legal):** [leagavihotelapositano@pec.agavi.it](mailto:leagavihotelapositano@pec.agavi.it) (Sources: [<privacy-policy-hotel-le-agavi-positano>])\n- **Facebook:** [@leagavihotelpositano](https://www.facebook.com/leagavihotelpositano) (Sources: [<hotel-le-agavi-positano-5-star-luxury>, <and-27-others>])\n- **Instagram (Hotel):** [@leagavi.hotel](https://www.instagram.com/leagavi.hotel/) (Sources: [<hotel-le-agavi-positano-5-star-luxury>, <and-27-others>])\n- **Instagram (La Serra):** [@laserrarestaurant.positano](https://www.instagram.com/laserrarestaurant.positano/) (Sources: [<hotel-le-agavi-positano-5-star-luxury>, <and-27-others>])\n- **Instagram (Remmese):** [@remmeserestaurant](https://www.instagram.com/remmeserestaurant/) (Sources: [<hotel-le-agavi-positano-5-star-luxury>, <and-27-others>])\n\n## 10) Coverage & Integrity Report\n\n- **Pages Processed:** 69\n- **Entries Created:** 52\n- **Potentially Unprocessed Content:**\n  - Content from pages with URLs ending in `.pdf` has been extracted and integrated into the relevant encyclopedia entries (e.g., menus for La Serra, Remmese, and The Pool Space). The original pages themselves were not processed as they were documents, not web pages.\n  - The numerous images across the site were not processed beyond their captions or associated text, as per the directives.\n- **Identified Contradictions:**\n  - **Remmese Restaurant Lunch Hours:** The restaurant's main page lists lunch from 12:30 PM to 3:00 PM, while the Remmese Beach House page lists it from 1:00 PM to 4:00 PM. This is noted in entry [restaurant-remmese](#restaurant-remmese).\n  - **The Pool Space (Pool Bar) Closing Time:** The main bar page lists closing time as 7:00 PM, while the pool-specific page lists it as 6:00 PM. This is noted in entry [bar-pool](#bar-pool)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2848,
+        7488
+      ],
+      "id": "1da144eb-58eb-4638-bda9-9e11aa8812b1",
+      "name": "WhatsApp AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2912,
+        7728
+      ],
+      "id": "0ed02fc2-a120-4bf5-a0cb-7b3616915f30",
+      "name": "gemini-2.5-pro"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        -2672,
+        7728
+      ],
+      "id": "42c8abe2-b6fc-4f95-941d-781de812f584",
+      "name": "think"
+    },
+    {
+      "parameters": {
+        "operation": "map",
+        "url": "={{ $json.Website }}",
+        "limit": 200,
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        -3120,
+        6896
+      ],
+      "id": "9b66b988-0dcc-43ab-b02d-09f187288020",
+      "name": "map_website_urls"
+    },
+    {
+      "parameters": {
+        "operation": "scrape",
+        "url": "={{ $json.links }}",
+        "scrapeOptions": {
+          "options": {
+            "headers": {},
+            "timeout": 60000
+          }
+        },
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        -2112,
+        6896
+      ],
+      "id": "24c565b8-7c95-4b73-9212-d46fce7e8f42",
+      "name": "scrape_url",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "links",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -2880,
+        6896
+      ],
+      "id": "26853c01-2292-465c-bd2f-acf2eec6ce2e",
+      "name": "split_urls"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "data",
+              "renameField": true,
+              "outputFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -3120,
+        7136
+      ],
+      "id": "6125f70f-7212-43a7-9e07-68decf9dcc1b",
+      "name": "aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0977e7a9-8c0c-4f8d-9749-fda01e8f1b1a",
+              "name": "scraped_website_result",
+              "value": "=Website: {{ $('form_trigger').item.json.Website }}\n\n-----\n{{ $json.data.map(item => {\n  let result = '';\n  result += 'Page Title: ' + item.metadata.title + '\\n';\n  result += 'Page Description: ' + item.metadata.description + '\\n';\n  result += 'Page Url: ' + item.metadata.url + '\\n\\n';\n\n  result += item.markdown;\n\n  return result;\n}).join(\"\\n-----\\n\") }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2880,
+        7136
+      ],
+      "id": "88057024-c4ca-4293-b3d5-3b40dbe14471",
+      "name": "set_scraped_content"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3360,
+        7488
+      ],
+      "id": "46358c76-67d9-48a6-9053-0c5160ffb0a6",
+      "name": "message_trigger",
+      "webhookId": "73225df9-fe1e-45a6-bf79-291d4ca5a780"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "713796415158669",
+        "recipientPhoneNumber": "={{ $('message_trigger').item.json.contacts[0].wa_id }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        -2384,
+        7488
+      ],
+      "id": "6dd96983-c881-491f-ba33-89f499139926",
+      "name": "send_reply_message",
+      "webhookId": "af4afb22-e459-48a4-a43e-e2f6b4396c2a"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=ai-hotel-agent-{{ $('message_trigger').item.json.contacts[0].wa_id }}",
+        "contextWindowLength": 30
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -2784,
+        7728
+      ],
+      "id": "b00265bf-3c7f-476f-8611-7ce4b6783554",
+      "name": "memory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "111b5700-aaf0-4cfc-863f-7d118cec3cd2",
+              "leftValue": "={{ $json.links }}",
+              "rightValue": "gallery",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "d31979d1-909c-4c8d-8f46-bf9c3279520c",
+              "leftValue": "={{ $json.links }}",
+              "rightValue": "media",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "e89e81bb-7f3c-4ace-bc04-60733d87bfae",
+              "leftValue": "={{ $json.links }}",
+              "rightValue": "uploads",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -2512,
+        6896
+      ],
+      "id": "c8c10238-332f-4ba4-9de4-805c8a42e828",
+      "name": "exclude_media"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "50433c99-5224-434d-976e-4d8f0cb8e18a",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -3360,
+        7136
+      ],
+      "id": "b60660dd-20ef-455d-b448-21787bf8926c",
+      "name": "filter_errors"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c24bf7c6-6ff5-4fdf-af07-34de93178c1f",
+              "name": "result",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2112,
+        7136
+      ],
+      "id": "41d178e6-11ae-4e3d-82b4-75ff5aace6e4",
+      "name": "set_encyclopedia_result"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# ROLE\nYou are an information architect and technical writer. Your mission is to synthesize a complete set of **hotel** website pages (provided as Markdown) into a **comprehensive, deduplicated Support Encyclopedia**. This encyclopedia will be the single source of truth for future guest-support and automation agents. You must preserve **all unique information** from the source pages, while structuring it logically for fast retrieval.\n\n---\n\n# PRIME DIRECTIVES\n1.  **Information Integrity (Non-Negotiable):** All unique facts, policies, numbers, names, hours, and other key details from the source pages must be captured and placed in the appropriate encyclopedia section. Redundant information (e.g., the same phone number on 10 different pages) should be captured once, with all its original source pages cited for traceability.\n2.  **Organized for Hotel Support:** The primary output is the organized layer (Taxonomy, FAQs, etc.). This is not just an index; it is the encyclopedia itself. It should be structured to answer an agent's questions directly and efficiently.\n3.  **No Hallucinations:** Do not invent or infer details (e.g., prices, hours, policies) not present in the source text. If information is genuinely missing or unclear, explicitly state `UNKNOWN`.\n4.  **Deterministic Structure:** Follow the exact output format specified below. Use stable, predictable IDs and anchors for all entries.\n5.  **Source Traceability:** Every piece of information in the encyclopedia must cite the `page_id`(s) it was derived from. Conversely, all substantive information from every source page must be integrated into the encyclopedia; nothing should be dropped.\n6.  **Language:** Keep the original language of the source text when quoting verbatim policies or names. The organizing layer (summaries, labels) should use the site’s primary language.\n\n---\n\n# INPUT FORMAT\nYou will receive one batch with all pages of a single hotel site. **This is the only input; there is no other metadata.**\n\n<<<PAGES\n{{ $json.scraped_website_result }}\n>>>\n\n**Stable Page IDs:** Generate `page_id` as a deterministic kebab-case slug of `title`:\n- Lowercase; ASCII alphanumerics and hyphens; spaces → hyphens; strip punctuation.\n- If duplicates occur, append `-2`, `-3`, … in order of appearance.\n\n---\n\n# OUTPUT FORMAT (Markdown)\n\nYour entire response must be a single Markdown document in the following exact structure. **There is no appendix or full-text archive; the encyclopedia itself is the complete output.**\n\n## 1) YAML Frontmatter\n\n---\nencyclopedia_version: 1.1 # Version reflects new synthesis model\ngenerated_at: <ISO-8601 timestamp (UTC)>\nsite:\n  name: \"UNKNOWN\"                  # set to hotel name if clearly inferable from sources; else UNKNOWN\ncounts:\n  total_pages_processed: <integer>\n  total_entries: <integer>         # encyclopedia entries you create\n  total_glossary_terms: <integer>\n  total_media_links: <integer>     # image/file/link targets found\nintegrity:\n  information_synthesis_method: \"deduplicated_canonical\"\n  all_pages_processed: true        # set false only if you could not process a page\n---\n\n## 2) Title\n\n# <Hotel Name or UNKNOWN> — Support Encyclopedia\n\n## 3) Table of Contents\nLinked outline to all major sections and subsections.\n\n## 4) Quick Start for Agents (Orientation Layer)\n- **What this is:** 2–4 bullets explaining that this is a complete, searchable knowledge base built from the hotel website.\n- **How to navigate:** 3–6 bullets (e.g., “Use the Taxonomy to find policies. Use the search function for specific keywords like 'pet fee'.\").\n- **Support maturity:** If present, summarize known channels/hours/SLAs. If unknown, write `UNKNOWN`.\n\n## 5) Taxonomy & Topics (The Core Encyclopedia)\nOrganize all synthesized information into these **hospitality categories**. Omit empty categories. Within each category, create **entries** that contain the canonical, deduplicated information.\n\n**Categories (use this order):**\n1. Property Overview & Brand  \n2. Rooms & Suites (types, amenities, occupancy, accessibility notes)  \n3. Rates, Packages & Promotions  \n4. Reservations & Booking Policies (channels, guarantees, deposits, preauthorizations, incidentals)  \n5. Check-In / Check-Out & Front Desk (times, ID/age, early/late options, holds)  \n6. Guest Services & Amenities (concierge, housekeeping, laundry, luggage storage)  \n7. Dining, Bars & Room Service (outlets, menus, hours, breakfast details)  \n8. Spa, Pool, Fitness & Recreation (rules, reservations, hours)  \n9. Wi-Fi & In-Room Technology (TV/casting, devices, outages)  \n10. Parking, Transportation & Directions (valet/self-park, EV charging, shuttles)  \n11. Meetings, Events & Weddings (spaces, capacities, floor plans, AV, catering)  \n12. Accessibility (ADA features, requests, accessible routes/rooms)  \n13. Safety, Security & Emergencies (procedures, contacts)  \n14. Policies (smoking, pets, noise, damage, lost & found, packages)  \n15. Billing, Taxes & Receipts (payment methods, folios, incidentals)  \n16. Cancellations, No-Shows & Refunds  \n17. Loyalty & Partnerships (earning, redemption, elite benefits)  \n18. Sustainability & House Rules  \n19. Local Area & Attractions (concierge picks, distances)  \n20. Contact, Hours & Support Channels  \n21. Miscellaneous / Unclassified (minimize)\n\n**Entry format (for every entry):**\n\n### [EntryID: <kebab-case-stable-id>] <Entry Title>\n**Category:** <one of the categories above>\n**Summary:** <2–6 sentences summarizing the topic. This is a high-level orientation for the agent.>\n**Key Facts:**\n- <short, atomic, deduplicated fact (e.g., \"Check-in time: 4:00 PM\")>\n- <short, atomic, deduplicated fact (e.g., \"Pet fee: $75 per stay\")>\n- ...\n**Canonical Details & Policies:**\n<This section holds longer, verbatim text that cannot be broken down into key facts. Examples: full cancellation policy text, detailed amenity descriptions, legal disclaimers. If a policy is identical across multiple sources, present it here once. Use Markdown formatting like lists and bolding for readability.>\n**Procedures (if any):**\n1) <step>\n2) <step>\n**Known Issues / Contradictions (if any):** <Note any conflicting information found across pages, citing sources. E.g., \"Homepage lists pool hours as 9 AM-9 PM, but Amenities page says 10 PM. [home, amenities]\"> or `None`.\n**Sources:** [<page_id-1>, <page_id-2>, ...]\n\n## 6) FAQs (If Present in Sources)\nAggregate explicit Q→A pairs. Keep answers concise and reference their sources.\n\n#### Q: <verbatim question or minimally edited>\nA: <brief, synthesized answer>\n**Sources:** [<page_id-1>, <page_id-2>, ...]\n\n## 7) Glossary (If Present)\nAlphabetical list of terms defined in sources.\n\n- **<Term>** — <definition as stated in the source; if multiple, synthesize or note variants>\n  **Sources:** [<page_id-1>, ...]\n\n## 8) Outlets, Venues & Amenities Index\n\n| Type        | Name                      | Brief Description (from source) | Sources   |\n|-------------|---------------------------|----------------------------------|-----------|\n| Restaurant  | ...                       | ...                              | [page-id] |\n| Bar         | ...                       | ...                              | [page-id] |\n| Venue       | ...                       | ...                              | [page-id] |\n| Amenity     | ...                       | ...                              | [page-id] |\n\n## 9) Contact & Support Channels (If Present)\nList all official channels (emails, phones, etc.) exactly as stated. Since this info is often repeated, this section should present one canonical, deduplicated list.\n- **Phone (Reservations):** 1-800-555-1234 (Sources: [home, contact, reservations])\n- **Email (General Inquiries):** info@hotel.com (Sources: [contact])\n- **Hours:** ...\n\n## 10) Coverage & Integrity Report\n- **Pages Processed:** `<N>`\n- **Entries Created:** `<M>`\n- **Potentially Unprocessed Content:** List any pages or major sections of pages whose content you could not confidently place into an entry. Explain why (e.g., \"Content on `page-id: gallery` was purely images with no text to process.\"). Should be `None` in most cases.\n- **Identified Contradictions:** Summarize any major conflicting policies or facts discovered during synthesis (e.g., \"Pet policy contradicts itself between FAQ and Policies page.\").\n\n---\n\n# CONTENT SYNTHESIS & FORMATTING RULES\n- **Deduplication:** Your primary goal is to identify and merge identical pieces of information. A phone number or policy listed on 5 pages should appear only once in the final encyclopedia, with all 5 pages cited as sources.\n- **Conflict Resolution:** When sources contain conflicting information (e.g., different check-out times), do not choose one. Present both versions and flag the contradiction in the `Known Issues / Contradictions` field of the relevant entry and in the main `Coverage & Integrity Report`.\n- **Formatting:** You are free to clean up formatting. Normalize headings, standardize lists (bullets/numbers), and convert data into readable Markdown tables. Retain all original text from list items, table cells, and captions.\n- **Links & Media:** Keep link text inline. You do not need to preserve the URL targets unless they are for external resources or downloadable files (like menus), in which case list them. Include image alt text/captions as `Image: <alt text>`.\n\n---\n\n# QUALITY CHECKS (Perform before finalizing)\n1.  **Completeness:** Have you processed all input pages? (`total_pages_processed` in YAML should match input).\n2.  **Information Integrity:** Have you reviewed each source page to ensure all unique facts, numbers, policies, and details have been captured somewhere in the encyclopedia (Sections 5-9)?\n3.  **Traceability:** Does every entry and key piece of data have a `Sources` list citing the original `page_id`(s)?\n4.  **Contradiction Flagging:** Have all discovered contradictions been noted in the appropriate entries and summarized in the final report?\n5.  **No Fabrication:** Confirm that all information is derived from the source text and that any missing data is marked `UNKNOWN`.\n\n---\n\n# NOW DO THE WORK\nUsing the provided `PAGES` (title, description, markdown), produce the hotel Support Encyclopedia exactly as specified above.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -2512,
+        7136
+      ],
+      "id": "18925e06-aa95-46b3-ad44-4e687edd169b",
+      "name": "build_encyclopedia"
+    },
+    {
+      "parameters": {
+        "content": "## Chatbot + Business Encyclopedia Builder\n1. Takes in the url of a business's website \n2. Scans and scrapes the website for important information\n3. Generates a business encyclopedia to be used the the WhatsApp agent",
+        "height": 624,
+        "width": 1504,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3424,
+        6720
+      ],
+      "typeVersion": 1,
+      "id": "327e6d0a-e0e7-4f8d-a944-893fbb359547",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## WhatsApp Chatbot Agent\n",
+        "height": 512,
+        "width": 1504
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3424,
+        7360
+      ],
+      "typeVersion": 1,
+      "id": "48c1a310-b39e-4dfc-acd4-e177cab6a0bd",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "# RAG Template\n",
+        "height": 1008,
+        "width": 2048,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        7056
+      ],
+      "id": "37a2e275-9b4d-419e-98de-668d37d3391d",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "# WhatsApp Agent Template",
+        "height": 1312,
+        "width": 1696,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3520,
+        6624
+      ],
+      "id": "0e957fd2-e9f1-40a1-b0d7-2c07487c1575",
+      "name": "Sticky Note10"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Scrape a url and get its content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Chat History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Chat History": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape a url and get its content": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Document Types": {
+      "main": [
+        [
+          {
+            "node": "Map document prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Map document prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Map document prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Map document prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Map document prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Map document prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Map JSON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from XLS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from XLSX",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Unsupported Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Types": {
+      "main": [
+        [
+          {
+            "node": "Map text prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gets WhatsApp Voicemail Source URL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gets WhatsApp Image Source URL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gets WhatsApp Document Source URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Document": {
+      "main": [
+        [
+          {
+            "node": "Map file extensions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Voicemail": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gets WhatsApp Document Source URL": {
+      "main": [
+        [
+          {
+            "node": "Download Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gets WhatsApp Image Source URL": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gets WhatsApp Voicemail Source URL": {
+      "main": [
+        [
+          {
+            "node": "Download Voicemail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map text prompt": {
+      "main": [
+        [
+          {
+            "node": "Knowledge Base Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map image prompt": {
+      "main": [
+        [
+          {
+            "node": "Knowledge Base Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map document prompt": {
+      "main": [
+        [
+          {
+            "node": "Knowledge Base Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map file extensions": {
+      "main": [
+        [
+          {
+            "node": "Route Document Types",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map JSON": {
+      "main": [
+        [
+          {
+            "node": "Map document prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from XLSX": {
+      "main": [
+        [
+          {
+            "node": "Map JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from XLS": {
+      "main": [
+        [
+          {
+            "node": "Map JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from PDF": {
+      "main": [
+        [
+          {
+            "node": "Map document prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Map image prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Knowledge Base Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Route Types",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Embeddings Generator": {
+      "ai_embedding": [
+        [
+          {
+            "node": "MongoDB Vector Store Inserter",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Docs Importer": {
+      "main": [
+        [
+          {
+            "node": "MongoDB Vector Store Inserter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Section Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "MongoDB Vector Store Inserter",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Chunker": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Document Section Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "MongoDB Vector Search",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Vector Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Knowledge Base Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knowledge Base Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Knowledge Base Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Knowledge Base Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload your file here": {
+      "main": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Data Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Query Data Tool",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "form_trigger": {
+      "main": [
+        [
+          {
+            "node": "map_website_urls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp AI Agent": {
+      "main": [
+        [
+          {
+            "node": "send_reply_message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gemini-2.5-pro": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "WhatsApp AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "build_encyclopedia",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "think": {
+      "ai_tool": [
+        [
+          {
+            "node": "WhatsApp AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "map_website_urls": {
+      "main": [
+        [
+          {
+            "node": "split_urls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scrape_url": {
+      "main": [
+        [
+          {
+            "node": "filter_errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split_urls": {
+      "main": [
+        [
+          {
+            "node": "exclude_media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "aggregate": {
+      "main": [
+        [
+          {
+            "node": "set_scraped_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_scraped_content": {
+      "main": [
+        [
+          {
+            "node": "build_encyclopedia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "message_trigger": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "WhatsApp AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exclude_media": {
+      "main": [
+        [
+          {
+            "node": "scrape_url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter_errors": {
+      "main": [
+        [
+          {
+            "node": "aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "build_encyclopedia": {
+      "main": [
+        [
+          {
+            "node": "set_encyclopedia_result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "5fca0611-3bc9-43b1-a53b-a04c3061987a",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-07T10:10:40.773Z",
+      "createdAt": "2026-01-07T10:10:40.773Z",
+      "role": "workflow:owner",
+      "workflowId": "12UYSgM56EDBCciUMx5yI",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-07T11:24:37.779Z",
+      "createdAt": "2026-01-07T11:24:37.779Z",
+      "id": "088iPKT5RBenhZCp",
+      "name": "Internal"
+    },
+    {
+      "updatedAt": "2026-01-07T11:24:39.071Z",
+      "createdAt": "2026-01-07T11:24:39.071Z",
+      "id": "0KJcY7aazNDTMiHj",
+      "name": "Aeontrix"
+    }
+  ]
+}
