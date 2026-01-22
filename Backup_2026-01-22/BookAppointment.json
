@@ -1,0 +1,630 @@
+{
+  "updatedAt": "2026-01-19T04:03:42.579Z",
+  "createdAt": "2026-01-17T08:36:49.688Z",
+  "id": "qI7GmLXXgYkk0IAJCbdAy",
+  "name": "BookAppointment",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c0c87d47-c997-4532-8888-0ae454b72eeb",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -704,
+        320
+      ],
+      "id": "d8195489-6b24-48c6-a8bf-0341dcdb8a03",
+      "name": "Webhook",
+      "webhookId": "c0c87d47-c997-4532-8888-0ae454b72eeb"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook').item.json.body.message.toolCalls[0].function.name }}",
+                    "rightValue": "getAvailability",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f4c5894d-f4e7-4e5a-b7ff-d58ae9821603"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Availability"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "831597c5-fb38-48bc-87b5-7e58d3e590de",
+                    "leftValue": "={{ $('Webhook').item.json.body.message.toolCalls[0].function.name }}",
+                    "rightValue": "bookAppointment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Book Appointment"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -352,
+        320
+      ],
+      "id": "6af24f90-295e-4d13-9bd7-a914c2b01243",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b2b6a3f3-cda2-4b42-8a8d-954a41e11f7a",
+              "name": "startTime",
+              "value": "={{ $('Webhook').item.json.body.message.toolWithToolCallList[0].toolCall.function.arguments.requestedTime }}",
+              "type": "string"
+            },
+            {
+              "id": "a309c13f-19ee-490d-b266-bf3c2b59b72e",
+              "name": "endTime",
+              "value": "={{ $('Webhook').item.json.body.message.toolCallList[0].function.arguments.requestedTime.toDateTime().plus(1, 'days') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        144
+      ],
+      "id": "72f40611-b7e5-4829-83d6-7d41cde5444d",
+      "name": "Start and End Time"
+    },
+    {
+      "parameters": {
+        "url": "https://api.cal.com/v2/slots",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "eventTypeId",
+              "value": "={{ $('Set').item.json.eventTypeID }}"
+            },
+            {
+              "name": "start",
+              "value": "={{ $json.startTime }}"
+            },
+            {
+              "name": "end",
+              "value": "={{ $json.endTime }}"
+            },
+            {
+              "name": "timeZone",
+              "value": "={{ $('Webhook').item.json.body.message.toolCallList[0].function.arguments.callerTimezone }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "cal-api-version",
+              "value": "2024-09-04"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer cal_live_f1fc35fc8a69c1b7237d752a42d11da7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        64,
+        144
+      ],
+      "id": "b39d6844-b79d-4c22-9cdb-b232db92790f",
+      "name": "Get Available Slots",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "maderxs3ZaVEt4Td",
+          "name": "Bearer Auth account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fa9419c2-e237-4247-a043-449086a6aa27",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        48
+      ],
+      "id": "419519ea-513f-465d-80c3-a53506596d01",
+      "name": "Slots Available?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"results\": [\n    {\n      \"toolCallId\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].id }}\",\n      \"result\": \"{{ Object.values(Object.values($('Get Available Slots').item.json.data)[0]).slice(0, 3).map(slot => slot.start).join(', ') }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        464,
+        -32
+      ],
+      "id": "7cbaf650-32b5-420d-a0fc-b1f4aecc4187",
+      "name": "Slots Available"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"results\": [\n    {\n      \"toolCallId\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].id }}\",\n      \"result\": \"There are no available time slots. Please choose another day or time.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        464,
+        128
+      ],
+      "id": "4847dbfb-d54c-4ced-86c7-546ebdf4d4f7",
+      "name": "Slots Not Available"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cal.com/v2/bookings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "cal-api-version",
+              "value": "2024-08-13"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer cal_live_f1fc35fc8a69c1b7237d752a42d11da7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"start\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.requestedTime }}\",\n  \"eventTypeId\": {{ $('Set').item.json.eventTypeID }},\n  \"attendee\": {\n    \"name\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.name }}\",\n    \"email\": \"{{ $('Set').item.json.email }}\",\n    \"timeZone\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.callerTimeZone }}\",\n    \"language\": \"en\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -128,
+        496
+      ],
+      "id": "207dd979-d17a-406f-a27c-3378a4d8179b",
+      "name": "Book Appointment",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=There was a problem checking availability. Please try again later.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        240
+      ],
+      "id": "87b52e0d-d613-42a9-a4f7-abbfae835a84",
+      "name": "Error"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.error.message }}",
+                    "rightValue": "User either already has booking at this time or is not available",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "3ddd190e-3f9a-4952-aabd-10765155eca1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Taken"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "30ba4834-8e28-4ae7-b90f-c79b8ad4061c",
+                    "leftValue": "={{ $json.error.message }}",
+                    "rightValue": "Attempting to book a meeting in the past",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "In the past"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bc5c5331-6205-4025-a9b2-163ca2459d1e",
+                    "leftValue": "={{ $json.error.message }}",
+                    "rightValue": "invalid_number",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Invalid number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        64,
+        576
+      ],
+      "id": "e62b54cc-ea11-47f3-9120-d726330f6618",
+      "name": "Error type"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={\n    \"results\": [\n        {\n            \"toolCallId\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].id }}\",\n            \"result\": The time at {{ $('Set').item.json.requestedTime.toDateTime().format('HH:mm') }} has just been taken. Please choose a different time slot.”\n        }\n    ]\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        480
+      ],
+      "id": "d838579c-805e-4d7b-90af-13f3294b7ef6",
+      "name": "Taken"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={\n    \"results\": [\n        {\n            \"toolCallId\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].id }}\",\n            \"result\": “The time you selected is in the past. Today is {{ $now.format('yyyy-MM-dd') }} — please choose a time after today.”\n        }\n    ]\n} \n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        592
+      ],
+      "id": "839c19f3-de0e-4c66-9038-427bcea04163",
+      "name": "In the Past"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={\n    \"results\": [\n        {\n            \"toolCallId\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].id }}\",\n            \"result\": \"You've been booked at the requested time, thanks!\"\n        }\n    ]\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        416
+      ],
+      "id": "393e6d67-2f22-4aea-89e2-785536a13ee3",
+      "name": "Success"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "340e3423-9fe2-4551-810f-6d951539a76a",
+              "name": "eventTypeID",
+              "value": "=2532275",
+              "type": "string"
+            },
+            {
+              "id": "d97f0056-3b50-416f-af2f-c9cf369a3c73",
+              "name": "email",
+              "value": "={{ $json.body.message.toolCalls[0].function.arguments.email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -528,
+        320
+      ],
+      "id": "a1f8ff86-fcb4-4f41-8f05-646a36996dc9",
+      "name": "Set"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={\n    \"results\": [\n        {\n            \"toolCallId\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].id }}\",\n            \"result\": “The phone number you provided is invalid. Please enter a valid phone number including the correct country code.”\n        }\n    ]\n} \n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        736
+      ],
+      "id": "2ae4741e-59a5-4bb9-bfeb-7c0fd1c60654",
+      "name": "Invalid Number"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Start and End Time",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Book Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start and End Time": {
+      "main": [
+        [
+          {
+            "node": "Get Available Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Available Slots": {
+      "main": [
+        [
+          {
+            "node": "Slots Available?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slots Available?": {
+      "main": [
+        [
+          {
+            "node": "Slots Available",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slots Not Available",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Appointment": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error type": {
+      "main": [
+        [
+          {
+            "node": "Taken",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "In the Past",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "a5eff9f0-f086-44c9-ae86-c65401f21640",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-17T08:36:49.688Z",
+      "createdAt": "2026-01-17T08:36:49.688Z",
+      "role": "workflow:owner",
+      "workflowId": "qI7GmLXXgYkk0IAJCbdAy",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
