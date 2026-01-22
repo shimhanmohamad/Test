@@ -1,0 +1,742 @@
+{
+  "updatedAt": "2026-01-19T04:05:11.899Z",
+  "createdAt": "2026-01-13T08:35:46.276Z",
+  "id": "BO3oD2zCTzAH_y4p1aPmB",
+  "name": "Book Apointment",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "3bec7f4d-bfc4-4dbf-8fd1-f89f1bd091c1",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -832,
+        -16
+      ],
+      "id": "7186a1e2-deb8-4b59-9396-f36aa81e4e3d",
+      "name": "Webhook",
+      "webhookId": "3bec7f4d-bfc4-4dbf-8fd1-f89f1bd091c1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        160,
+        32
+      ],
+      "id": "8c5ec5f8-5963-4dfc-80d3-70f36eb7669e",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cal.com/v2/bookings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": " cal-api-version",
+              "value": "2024-08-13"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer cal_live_f1fc35fc8a69c1b7237d752a42d11da7"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"eventTypeId\": 2532275,\n  \"start\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.requestedTime.trim() }}\",\n  \"attendee\": {\n    \"name\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.name }}\",\n    \"email\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.email }}\",\n    \"timeZone\": \"{{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.callerTimeZone }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -96,
+        176
+      ],
+      "id": "218c36d1-f661-40e9-9031-648447cd0d1b",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e1157c7-42df-4c40-9c24-d761352fe0bb",
+              "name": "eventTypeID",
+              "value": "2532275",
+              "type": "string"
+            },
+            {
+              "id": "4d283498-1730-4110-bc19-277808e4b835",
+              "name": "email",
+              "value": "={{ $json.body.message.toolCalls[0].function.arguments.email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -624,
+        -16
+      ],
+      "id": "5becab7e-2d54-44b8-8a96-9e19f9e77b38",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook').item.json.body.message.toolCalls[0].function.name }}",
+                    "rightValue": "check_availability",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7e589db1-bbb6-4272-9dc0-7ae3997a3957"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Availability"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6c83f714-630b-4b59-976c-476cddca3fd8",
+                    "leftValue": "={{ $('Webhook').item.json.body.message.toolCallList[0].function.name }}",
+                    "rightValue": "book_appointment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Book Appointment"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        -16
+      ],
+      "id": "33adc0e9-f4c4-454a-b25a-608b3080bf68",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0ca2b1c5-3fca-47f2-9483-25e960388667",
+              "name": "eventTypeID",
+              "value": "={{ $('Edit Fields').item.json.eventTypeID }}",
+              "type": "string"
+            },
+            {
+              "id": "0272aed1-c7c5-49e3-bf6f-5439ee6a44bb",
+              "name": "name",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "964650eb-2e67-4f64-8f0e-3e149337b413",
+              "name": "startTime",
+              "value": "={{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.requestedTime }}",
+              "type": "string"
+            },
+            {
+              "id": "50e098d0-44cf-4e36-88d9-4ad93b2af411",
+              "name": "endTime",
+              "value": "={{\n  (() => {\n    const start = $('Webhook').item.json.body.message.toolCalls[0].function.arguments.requestedTime.trim();\n    \n    // Parse the datetime parts manually to avoid timezone issues\n    const match = start.match(/(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})([+-]\\d{2}:\\d{2})/);\n    \n    if (!match) return null;\n    \n    const [_, year, month, day, hours, minutes, seconds, tz] = match;\n    \n    // Add 30 minutes (0.5 hour)\n    let endHour = parseInt(hours);\n    let endMinutes = parseInt(minutes) + 30;\n    \n    // Handle minute overflow (e.g., 45 + 30 = 75 minutes = 1 hour 15 minutes)\n    if (endMinutes >= 60) {\n      endHour += 1;\n      endMinutes -= 60;\n    }\n    \n    const pad = n => n.toString().padStart(2, '0');\n    \n    return `${year}-${month}-${day}T${pad(endHour)}:${pad(endMinutes)}:${seconds}${tz}`;\n  })()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        -256
+      ],
+      "id": "8c09717c-7976-4e77-9763-9907b1bbce2d",
+      "name": "Start and end time"
+    },
+    {
+      "parameters": {
+        "url": "https://api.cal.com/v2/slots/available",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "eventTypeId",
+              "value": "={{ $('Edit Fields').item.json.eventTypeID }}"
+            },
+            {
+              "name": "startTime",
+              "value": "={{ $json.startTime }}"
+            },
+            {
+              "name": "endTime",
+              "value": "={{ $json.endTime }}"
+            },
+            {
+              "name": "callerTimeZone",
+              "value": "={{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.callerTimeZone }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Authorization\": \"Bearer cal_live_f1fc35fc8a69c1b7237d752a42d11da7\",\n  \"Content-Type\": \"application/json\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        144,
+        -256
+      ],
+      "id": "2578dcc2-4a97-4b14-b21d-1bef7f1fd729",
+      "name": "HTTP Request1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0f2a9646-68d5-4b10-83f2-3e64801eab51",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "true"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a93fb11c-20d5-454e-85de-bf6181399dba",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1744,
+        -320
+      ],
+      "id": "61161b08-e7ee-4804-a2e2-4316cb1fe885",
+      "name": "Slot Available?"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1792,
+        -464
+      ],
+      "id": "32748faa-3e1d-450b-b8b2-6153fcd9f305",
+      "name": "Slots available"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1600,
+        -320
+      ],
+      "id": "8fe03be4-140b-4fb6-883f-8dd7af623251",
+      "name": "Slots Not Available"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        -176
+      ],
+      "id": "2da22be3-abb3-4af9-90c2-e2990ac5b2ff",
+      "name": "Error"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.results[0].result }}",
+                    "rightValue": "user already taken this time slot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "010edc24-fa32-4593-89e1-91d065248899"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Taken"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "59c50529-feec-43a5-9945-f6999bf7aa14",
+                    "leftValue": "={{ $json.results[0].result }}",
+                    "rightValue": "Attempting to book a meeting a in past",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "In the past"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7f54db63-e3b2-4b1c-8828-1250358aa3d3",
+                    "leftValue": "={{ $json.results[0].result }}",
+                    "rightValue": "invalid email",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Invalid email"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        256
+      ],
+      "id": "0eb123ba-f669-4b7f-b2e7-4c52faf830d7",
+      "name": "Error type"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1120,
+        96
+      ],
+      "id": "dcec9921-14b0-4f28-a8cd-8194ee2d6bb8",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1120,
+        272
+      ],
+      "id": "1ec757d1-ebac-4fc5-8271-9da27fc26d32",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1136,
+        432
+      ],
+      "id": "75e50427-914d-498c-a5a6-1c8b39c57b17",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        688,
+        -400
+      ],
+      "id": "ae55311b-9073-4a5c-bbb3-eb70c1baec80",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const toolCallId = $('Webhook').item.json.body.message.toolCalls[0].id;\nconst slots = $input.item.json.data?.slots || {};\nconst hasSlots = Object.keys(slots).length > 0;\n\nlet resultMessage;\nif (hasSlots) {\n  const slotsList = Object.entries(slots)\n    .map(([date, times]) => \n      times.map(t => new Date(t.time).toLocaleString()).join(', ')\n    )\n    .join('; ');\n  resultMessage = `Available slots: ${slotsList}`;\n} else {\n  resultMessage = \"No available slots for this time. Please try another date or time.\";\n}\n\nreturn {\n  json: {\n    results: [\n      {\n        toolCallId: toolCallId,\n        result: resultMessage\n      }\n    ]\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        -400
+      ],
+      "id": "3d07bc75-82b2-4f98-807d-1de6830cc31e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    results: [\n      {\n        toolCallId: $('Webhook').item.json.body.message.toolCalls[0].id,\n        result: \"Test response - if you see this, the connection works!\"\n      }\n    ]\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        -512
+      ],
+      "id": "f8326883-3565-4286-8763-7e375a98b5b6",
+      "name": "Debug node"
+    },
+    {
+      "parameters": {
+        "jsCode": "const toolCallId = $('Webhook').item.json.body.message.toolCalls[0].id;\nconst errorData = $input.item.json.error;\n\n// Extract the actual Cal.com error message\nlet calComError = '';\ntry {\n  if (errorData && errorData.message) {\n    // Parse the nested JSON in the error message\n    const jsonMatch = errorData.message.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      const errorJson = JSON.parse(jsonMatch[0]);\n      calComError = errorJson.error?.message || '';\n    }\n  }\n} catch (e) {\n  console.log('Error parsing:', e);\n}\n\nlet resultMessage;\n\n// Check if it's the \"already booked\" error\nif (calComError.includes('already has booking') || calComError.includes('not available')) {\n  resultMessage = \"That time slot was just taken. Let me check what's available right now.\";\n} else if (calComError.includes('start must be')) {\n  resultMessage = \"There was an issue with the time format. Please tell me another date and time you'd like.\";\n} else {\n  resultMessage = \"There was a technical issue. Let me help you find another available time.\";\n}\n\nreturn {\n  json: {\n    results: [\n      {\n        toolCallId: toolCallId,\n        result: resultMessage\n      }\n    ]\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        272
+      ],
+      "id": "c80fc447-25b9-4142-8514-cd5465948b0d",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        384,
+        272
+      ],
+      "id": "8151249a-6f07-4899-a66f-c933482d7e12",
+      "name": "Respond to Webhook5"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Start and end time",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start and end time": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slot Available?": {
+      "main": [
+        [
+          {
+            "node": "Slots available",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slots Not Available",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error type": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook4": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "3e4a7c84-5e5e-4b9f-add0-c2963cc54231",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-13T08:35:46.276Z",
+      "createdAt": "2026-01-13T08:35:46.276Z",
+      "role": "workflow:owner",
+      "workflowId": "BO3oD2zCTzAH_y4p1aPmB",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
