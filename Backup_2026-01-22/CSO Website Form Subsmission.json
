@@ -1,0 +1,167 @@
+{
+  "updatedAt": "2026-01-07T13:03:54.781Z",
+  "createdAt": "2026-01-07T11:26:12.913Z",
+  "id": "ZoRjNxjFpZE2aktm2ntSe",
+  "name": "CSO Website Form Subsmission",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "1c180954-1862-4cdb-8507-ed049be39c41",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b20592e7-0f52-454c-8e24-f4c4d4b1fdc3",
+      "name": "Webhook",
+      "webhookId": "1c180954-1862-4cdb-8507-ed049be39c41"
+    },
+    {
+      "parameters": {
+        "sendTo": "hello@thecso.in",
+        "subject": "=Website Form Submission",
+        "emailType": "text",
+        "message": "=Name: {{ $json.body.firstName }}{{ $json.body.lastName }}\n\nEmail: {{ $json.body.email }}\n\nPhone: {{ $json.body.phone }}\n\nSubject: {{ $json.body.subject }}\n\nMessage:\n{{ $json.body.message }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "fb27a559-f1d5-44d8-8a3e-538546027dd5",
+      "name": "Send a message",
+      "webhookId": "0949b2cb-0dbe-4013-9df3-6240546fa75d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oKELf5OtuS9854VS",
+          "name": "CSO gmail"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "6741da72-59d2-4e39-b3ba-1a878a5793fd",
+  "activeVersionId": "6741da72-59d2-4e39-b3ba-1a878a5793fd",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-07T11:26:12.913Z",
+      "createdAt": "2026-01-07T11:26:12.913Z",
+      "role": "workflow:owner",
+      "workflowId": "ZoRjNxjFpZE2aktm2ntSe",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-01-07T13:04:02.479Z",
+    "createdAt": "2026-01-07T13:03:54.783Z",
+    "versionId": "6741da72-59d2-4e39-b3ba-1a878a5793fd",
+    "workflowId": "ZoRjNxjFpZE2aktm2ntSe",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "1c180954-1862-4cdb-8507-ed049be39c41",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "b20592e7-0f52-454c-8e24-f4c4d4b1fdc3",
+        "name": "Webhook",
+        "webhookId": "1c180954-1862-4cdb-8507-ed049be39c41"
+      },
+      {
+        "parameters": {
+          "sendTo": "hello@thecso.in",
+          "subject": "=Website Form Submission",
+          "emailType": "text",
+          "message": "=Name: {{ $json.body.firstName }}{{ $json.body.lastName }}\n\nEmail: {{ $json.body.email }}\n\nPhone: {{ $json.body.phone }}\n\nSubject: {{ $json.body.subject }}\n\nMessage:\n{{ $json.body.message }}",
+          "options": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          208,
+          0
+        ],
+        "id": "fb27a559-f1d5-44d8-8a3e-538546027dd5",
+        "name": "Send a message",
+        "webhookId": "0949b2cb-0dbe-4013-9df3-6240546fa75d",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "oKELf5OtuS9854VS",
+            "name": "CSO gmail"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Aeontrix AI",
+    "name": "Final",
+    "description": "",
+    "autosaved": false
+  },
+  "tags": [
+    {
+      "updatedAt": "2026-01-07T11:22:33.467Z",
+      "createdAt": "2026-01-07T11:22:33.467Z",
+      "id": "NHHeJKe2GGwZZP6L",
+      "name": "CSO"
+    },
+    {
+      "updatedAt": "2026-01-07T11:22:31.708Z",
+      "createdAt": "2026-01-07T11:22:31.708Z",
+      "id": "5FQ8wY35kCbVY4t2",
+      "name": "Client"
+    }
+  ]
+}
