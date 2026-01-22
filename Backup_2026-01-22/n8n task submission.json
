@@ -1,0 +1,181 @@
+{
+  "updatedAt": "2026-01-22T10:01:58.724Z",
+  "createdAt": "2026-01-08T05:33:06.662Z",
+  "id": "QskR3xVjXZfJkbvVxJMNn",
+  "name": "n8n task submission",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "fromEmail": "jobs@pasovit.com",
+        "toEmail": "={{ $json.question_YQPaGJ.value }}",
+        "subject": "Book your Interview Slot",
+        "html": "=<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <title>Interview Scheduling</title>\n  <style>\n    body {\n      font-family: Arial, Helvetica, sans-serif;\n      color: #222;\n      line-height: 1.6;\n    }\n    a {\n      color: #0066cc;\n    }\n  </style>\n</head>\n<body>\n\n  <p>Hi {{ $json.question_5zbx9E.value }},</p>\n\n  <p>\n    Please find a suitable time and book an interview with our team using the link below:\n  </p>\n\n  <p>\n    <a href=\"https://cal.com/aeontrix-ai/developer-interview\" target=\"_blank\">\n      Book Interview Slot\n    </a>\n  </p>\n\n  <p>\n    Or paste this link into your browser:<br />\n    https://cal.com/aeontrix-ai/developer-interview\n  </p>\n\n  <p>\n    Also, ensure you have a stable internet connection and can keep your video on.\n    Please stay in a quiet place during the meeting.\n  </p>\n\n  <p>\n    If you encounter any issues or have questions, please reply to this email.\n  </p>\n\n  <p>\n    Best,<br />\n    Team Pasovit\n  </p>\n\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "dea1b628-642f-43dc-8f34-bf1e620377fc",
+      "name": "Send email",
+      "webhookId": "f08f3da1-00d8-43d2-beef-39d65424813b",
+      "credentials": {
+        "smtp": {
+          "id": "bJzQiT65Pwo6d8Xy",
+          "name": "jobs@pasovit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formId": "q4aWBO"
+      },
+      "type": "n8n-nodes-tallyforms.tallyTrigger",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8b08d881-3761-4ef1-a1c4-79ae97afb2e9",
+      "name": "Tally Trigger",
+      "webhookId": "01e8544d-45c3-4292-affb-66b68cdb2143",
+      "credentials": {
+        "tallyApi": {
+          "id": "SvK9vBIQFtlHwW3K",
+          "name": "Tally account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Tally Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "8eadd271-26d5-4a25-8609-fea2dc2c1aed",
+  "activeVersionId": "8eadd271-26d5-4a25-8609-fea2dc2c1aed",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-08T05:33:06.662Z",
+      "createdAt": "2026-01-08T05:33:06.662Z",
+      "role": "workflow:owner",
+      "workflowId": "QskR3xVjXZfJkbvVxJMNn",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-01-22T10:02:07.635Z",
+    "createdAt": "2026-01-22T10:01:58.726Z",
+    "versionId": "8eadd271-26d5-4a25-8609-fea2dc2c1aed",
+    "workflowId": "QskR3xVjXZfJkbvVxJMNn",
+    "nodes": [
+      {
+        "parameters": {
+          "fromEmail": "jobs@pasovit.com",
+          "toEmail": "={{ $json.question_YQPaGJ.value }}",
+          "subject": "Book your Interview Slot",
+          "html": "=<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <title>Interview Scheduling</title>\n  <style>\n    body {\n      font-family: Arial, Helvetica, sans-serif;\n      color: #222;\n      line-height: 1.6;\n    }\n    a {\n      color: #0066cc;\n    }\n  </style>\n</head>\n<body>\n\n  <p>Hi {{ $json.question_5zbx9E.value }},</p>\n\n  <p>\n    Please find a suitable time and book an interview with our team using the link below:\n  </p>\n\n  <p>\n    <a href=\"https://cal.com/aeontrix-ai/developer-interview\" target=\"_blank\">\n      Book Interview Slot\n    </a>\n  </p>\n\n  <p>\n    Or paste this link into your browser:<br />\n    https://cal.com/aeontrix-ai/developer-interview\n  </p>\n\n  <p>\n    Also, ensure you have a stable internet connection and can keep your video on.\n    Please stay in a quiet place during the meeting.\n  </p>\n\n  <p>\n    If you encounter any issues or have questions, please reply to this email.\n  </p>\n\n  <p>\n    Best,<br />\n    Team Pasovit\n  </p>\n\n</body>\n</html>",
+          "options": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.emailSend",
+        "typeVersion": 2.1,
+        "position": [
+          208,
+          0
+        ],
+        "id": "dea1b628-642f-43dc-8f34-bf1e620377fc",
+        "name": "Send email",
+        "webhookId": "f08f3da1-00d8-43d2-beef-39d65424813b",
+        "credentials": {
+          "smtp": {
+            "id": "bJzQiT65Pwo6d8Xy",
+            "name": "jobs@pasovit.com"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "formId": "q4aWBO"
+        },
+        "type": "n8n-nodes-tallyforms.tallyTrigger",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "8b08d881-3761-4ef1-a1c4-79ae97afb2e9",
+        "name": "Tally Trigger",
+        "webhookId": "01e8544d-45c3-4292-affb-66b68cdb2143",
+        "credentials": {
+          "tallyApi": {
+            "id": "SvK9vBIQFtlHwW3K",
+            "name": "Tally account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Tally Trigger": {
+        "main": [
+          [
+            {
+              "node": "Send email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Aeontrix AI",
+    "name": "Version 8eadd271",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": [
+    {
+      "updatedAt": "2026-01-07T11:24:37.779Z",
+      "createdAt": "2026-01-07T11:24:37.779Z",
+      "id": "088iPKT5RBenhZCp",
+      "name": "Internal"
+    },
+    {
+      "updatedAt": "2026-01-07T11:24:39.071Z",
+      "createdAt": "2026-01-07T11:24:39.071Z",
+      "id": "0KJcY7aazNDTMiHj",
+      "name": "Aeontrix"
+    },
+    {
+      "updatedAt": "2026-01-08T06:04:24.959Z",
+      "createdAt": "2026-01-08T06:04:24.959Z",
+      "id": "WCCimUcOpt9oSzcv",
+      "name": "HR"
+    }
+  ]
+}
