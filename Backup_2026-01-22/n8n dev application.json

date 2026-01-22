@@ -1,0 +1,181 @@
+{
+  "updatedAt": "2026-01-08T06:04:27.267Z",
+  "createdAt": "2026-01-08T05:19:41.463Z",
+  "id": "omo9Md_JSmI0zceZHLClp",
+  "name": "n8n dev application",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "fromEmail": "jobs@pasovit.com",
+        "toEmail": "={{ $json.question_XDLJAP.value }}",
+        "subject": "n8n Developer Technical Assignment",
+        "html": "=<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>n8n Developer Technical Assignment</title>\n</head>\n<body style=\"font-family: Arial, Helvetica, sans-serif; color: #222; line-height: 1.6;\">\n\n  <p>Hi {{ $json.question_g0adPP.value }},</p>\n\n  <p>\n    Thanks for your interest in the n8n Developer role.\n  </p>\n\n  <p>\n    Please find attached the Google Doc containing the instructions for the technical assignment:<br>\n    <a href=\"https://docs.google.com/document/d/1dHDEtuSi85LgkSG9z0kthcsYsyEX-K9KjdrtX8TAIWE/edit?usp=sharing\" target=\"_blank\">\n      Task Details Document\n    </a>\n  </p>\n\n  <p>\n    The deadline is <strong>11:59 PM (your local time)</strong> on\n    <strong>\n      {{ (() => { const d = new Date(Date.now()); d.setDate(d.getDate() + 3); return d.toLocaleDateString('en-GB'); })() }}\n    </strong>.\n  </p>\n\n  <p>\n    Submission details and requirements are clearly mentioned in the document. Please make sure to follow them closely.\n\nHere is the submission link: <a href=\"https://tally.so/r/q4aWBO\" target=\"_blank\">\n      Submission Form\n  </a>\n  </p>\n\n  <p>\n    If you have any questions or face any issues accessing the document, feel free to reply to this email.\n  </p>\n\n  <p>\n    Looking forward to reviewing your submission.\n  </p>\n\n  <p>\n    Best regards,<br>\n    Team Pasovit\n  </p>\n\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        336,
+        16
+      ],
+      "id": "3e90ec1d-95e6-4ad2-b3ae-b6a1c5825880",
+      "name": "Send email",
+      "webhookId": "64d97f07-8831-4e2e-ba13-2b305e84fa37",
+      "credentials": {
+        "smtp": {
+          "id": "bJzQiT65Pwo6d8Xy",
+          "name": "jobs@pasovit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formId": "BzKZRK"
+      },
+      "type": "n8n-nodes-tallyforms.tallyTrigger",
+      "typeVersion": 2,
+      "position": [
+        128,
+        16
+      ],
+      "id": "7bf17a59-92f1-47b7-afda-19ce012f66c9",
+      "name": "Tally Trigger",
+      "webhookId": "fe866ae0-2a42-4277-95ee-59a6170a53cf",
+      "credentials": {
+        "tallyApi": {
+          "id": "SvK9vBIQFtlHwW3K",
+          "name": "Tally account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Tally Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "bf5f085a-6ac4-4650-b5e9-239168c658d4",
+  "activeVersionId": "bf5f085a-6ac4-4650-b5e9-239168c658d4",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-08T05:19:41.463Z",
+      "createdAt": "2026-01-08T05:19:41.463Z",
+      "role": "workflow:owner",
+      "workflowId": "omo9Md_JSmI0zceZHLClp",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-01-08T05:44:54.896Z",
+    "createdAt": "2026-01-08T05:44:39.869Z",
+    "versionId": "bf5f085a-6ac4-4650-b5e9-239168c658d4",
+    "workflowId": "omo9Md_JSmI0zceZHLClp",
+    "nodes": [
+      {
+        "parameters": {
+          "fromEmail": "jobs@pasovit.com",
+          "toEmail": "={{ $json.question_XDLJAP.value }}",
+          "subject": "n8n Developer Technical Assignment",
+          "html": "=<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>n8n Developer Technical Assignment</title>\n</head>\n<body style=\"font-family: Arial, Helvetica, sans-serif; color: #222; line-height: 1.6;\">\n\n  <p>Hi {{ $json.question_g0adPP.value }},</p>\n\n  <p>\n    Thanks for your interest in the n8n Developer role.\n  </p>\n\n  <p>\n    Please find attached the Google Doc containing the instructions for the technical assignment:<br>\n    <a href=\"https://docs.google.com/document/d/1dHDEtuSi85LgkSG9z0kthcsYsyEX-K9KjdrtX8TAIWE/edit?usp=sharing\" target=\"_blank\">\n      Task Details Document\n    </a>\n  </p>\n\n  <p>\n    The deadline is <strong>11:59 PM (your local time)</strong> on\n    <strong>\n      {{ (() => { const d = new Date(Date.now()); d.setDate(d.getDate() + 3); return d.toLocaleDateString('en-GB'); })() }}\n    </strong>.\n  </p>\n\n  <p>\n    Submission details and requirements are clearly mentioned in the document. Please make sure to follow them closely.\n\nHere is the submission link: <a href=\"https://tally.so/r/q4aWBO\" target=\"_blank\">\n      Submission Form\n  </a>\n  </p>\n\n  <p>\n    If you have any questions or face any issues accessing the document, feel free to reply to this email.\n  </p>\n\n  <p>\n    Looking forward to reviewing your submission.\n  </p>\n\n  <p>\n    Best regards,<br>\n    Team Pasovit\n  </p>\n\n</body>\n</html>",
+          "options": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.emailSend",
+        "typeVersion": 2.1,
+        "position": [
+          336,
+          16
+        ],
+        "id": "3e90ec1d-95e6-4ad2-b3ae-b6a1c5825880",
+        "name": "Send email",
+        "webhookId": "64d97f07-8831-4e2e-ba13-2b305e84fa37",
+        "credentials": {
+          "smtp": {
+            "id": "bJzQiT65Pwo6d8Xy",
+            "name": "jobs@pasovit.com"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "formId": "BzKZRK"
+        },
+        "type": "n8n-nodes-tallyforms.tallyTrigger",
+        "typeVersion": 2,
+        "position": [
+          128,
+          16
+        ],
+        "id": "7bf17a59-92f1-47b7-afda-19ce012f66c9",
+        "name": "Tally Trigger",
+        "webhookId": "fe866ae0-2a42-4277-95ee-59a6170a53cf",
+        "credentials": {
+          "tallyApi": {
+            "id": "SvK9vBIQFtlHwW3K",
+            "name": "Tally account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Tally Trigger": {
+        "main": [
+          [
+            {
+              "node": "Send email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Aeontrix AI",
+    "name": "Version bf5f085a",
+    "description": "",
+    "autosaved": false
+  },
+  "tags": [
+    {
+      "updatedAt": "2026-01-07T11:24:39.071Z",
+      "createdAt": "2026-01-07T11:24:39.071Z",
+      "id": "0KJcY7aazNDTMiHj",
+      "name": "Aeontrix"
+    },
+    {
+      "updatedAt": "2026-01-07T11:24:37.779Z",
+      "createdAt": "2026-01-07T11:24:37.779Z",
+      "id": "088iPKT5RBenhZCp",
+      "name": "Internal"
+    },
+    {
+      "updatedAt": "2026-01-08T06:04:24.959Z",
+      "createdAt": "2026-01-08T06:04:24.959Z",
+      "id": "WCCimUcOpt9oSzcv",
+      "name": "HR"
+    }
+  ]
+}
