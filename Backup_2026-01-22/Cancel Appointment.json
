@@ -1,0 +1,164 @@
+{
+  "updatedAt": "2026-01-19T04:05:35.032Z",
+  "createdAt": "2026-01-13T14:17:21.835Z",
+  "id": "JQTPGooPMjDmF5XgRcjhP",
+  "name": "Cancel Appointment",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "27ad64bc-aace-49ba-b094-3849e0fb4bf0",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "88d2562d-79c8-44c0-867f-4adfc1235a90",
+      "name": "Webhook",
+      "webhookId": "27ad64bc-aace-49ba-b094-3849e0fb4bf0"
+    },
+    {
+      "parameters": {
+        "url": "https://api.cal.com/v2/bookings",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "attendeeEmail",
+              "value": "={{ $json.body.args.attendeeEmail }}"
+            },
+            {
+              "name": "status",
+              "value": "upcoming"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer cal_live_f1fc35fc8a69c1b7237d752a42d11da7"
+            },
+            {
+              "name": "cal-api-version",
+              "value": "2024-08-13"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -32,
+        -16
+      ],
+      "id": "95428968-eabe-489d-948c-3306d452a0b9",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        384,
+        -16
+      ],
+      "id": "be9954e2-c019-4638-873f-ca3e4615c9f8",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.cal.com/v2/bookings/{{ $json.data[0].uid }}/cancel",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "cal-api-version",
+              "value": "2024-08-13"
+            },
+            {
+              "name": "cancellationReason",
+              "value": "={{ $('Webhook').item.json.body.args.cancellationReason }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        176,
+        -16
+      ],
+      "id": "fa4a130c-d75c-46ae-9660-f8b1bac3ed29",
+      "name": "Cancel-Booking"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Cancel-Booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancel-Booking": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "d4dfbe83-4386-4018-a15a-f76306074eff",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-13T14:17:21.835Z",
+      "createdAt": "2026-01-13T14:17:21.835Z",
+      "role": "workflow:owner",
+      "workflowId": "JQTPGooPMjDmF5XgRcjhP",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
