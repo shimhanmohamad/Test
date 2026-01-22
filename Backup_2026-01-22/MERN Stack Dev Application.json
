@@ -1,0 +1,187 @@
+{
+  "updatedAt": "2026-01-08T06:05:31.757Z",
+  "createdAt": "2026-01-08T05:47:02.159Z",
+  "id": "KzPqtsHe1zIlBKRIdXRWS",
+  "name": "MERN Stack Dev Application",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formId": "obbWRV"
+      },
+      "type": "n8n-nodes-tallyforms.tallyTrigger",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d5915274-b5fe-46d9-bf7e-bc4753a563ab",
+      "name": "Tally Trigger",
+      "webhookId": "b4e44dd2-4f5a-4697-aa54-6d73f04131a9",
+      "credentials": {
+        "tallyApi": {
+          "id": "SvK9vBIQFtlHwW3K",
+          "name": "Tally account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "jobs@pasovit.com",
+        "toEmail": "={{ $json.question_OG2ElK.value }}",
+        "subject": "Pasovit Technologies Developer Role - Technical Task",
+        "html": "=<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  </head>\n  <body style=\"margin:0; padding:0; background:#f6f7fb; font-family: Arial, Helvetica, sans-serif; color:#111827;\">\n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f6f7fb; padding:24px 12px;\">\n      <tr>\n        <td align=\"center\">\n          <table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px; width:100%; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;\">\n            <tr>\n              <td style=\"padding:20px 24px; background:#111827; color:#ffffff;\">\n                <div style=\"font-size:16px; font-weight:700; letter-spacing:0.2px;\">Pasovit Technologies - Technical Task</div>\n                <div style=\"font-size:13px; opacity:0.9; margin-top:6px;\">Backend Developer Assignment</div>\n              </td>\n            </tr>\n\n            <tr>\n              <td style=\"padding:24px;\">\n                <p style=\"margin:0 0 12px 0; font-size:14px; line-height:1.6;\">\n                  Hi <strong>{{ $json.question_oGPzD1.value }}</strong>,\n                </p>\n\n                <p style=\"margin:0 0 14px 0; font-size:14px; line-height:1.6;\">\n                  This email contains everything you need to complete and submit the technical task.\n                  Please follow the instructions in the Google Doc carefully and submit your work using the submission link below.\n                </p>\n\n                <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin:18px 0; border:1px solid #e5e7eb; border-radius:10px;\">\n                  <tr>\n                    <td style=\"padding:14px 16px; background:#f9fafb;\">\n                      <div style=\"font-size:13px; color:#374151; margin-bottom:4px;\">Deadline</div>\n                      <div style=\"font-size:16px; font-weight:700; color:#111827;\">\n                        12/01/2026 (end of day)\n                      </div>\n                      <div style=\"font-size:12px; color:#6b7280; margin-top:6px;\">\n                        If you anticipate any blockers that could impact the deadline, flag them early with a clear reason and mitigation plan.\n                      </div>\n                    </td>\n                  </tr>\n                </table>\n\n                <h3 style=\"margin:18px 0 10px 0; font-size:14px; color:#111827;\">1) Read the instructions (Google Doc)</h3>\n                <p style=\"margin:0 0 10px 0; font-size:14px; line-height:1.6;\">\n                  Use this document as the source of truth for the technical task instructions:\n                  <br />\n                  <a href=\"https://docs.google.com/document/d/12wYeySoeVmvR1mIvLjmnfOL1UaXgddOAfkJS3ibX4SM/edit?tab=t.0\"\n                     style=\"color:#2563eb; text-decoration:underline;\">\n                    Open the Technical Task Google Doc\n                  </a>\n                </p>\n\n                <h3 style=\"margin:18px 0 10px 0; font-size:14px; color:#111827;\">2) Submit your work (Tally Form)</h3>\n                <p style=\"margin:0 0 16px 0; font-size:14px; line-height:1.6;\">\n                  Submit your final work through this link:\n                  <br />\n                  <a href=\"https://tally.so/r/LZZlX2\" style=\"color:#2563eb; text-decoration:underline;\">\n                    Submit via Tally\n                  </a>\n                </p>\n\n                <div style=\"margin:18px 0; padding:14px 16px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px;\">\n                  <div style=\"font-size:13px; font-weight:700; margin-bottom:8px; color:#111827;\">Submission expectations (keep it clean)</div>\n                  <ul style=\"margin:0; padding-left:18px; font-size:13px; line-height:1.7; color:#374151;\">\n                    <li>Include a README with setup steps and how to run the project locally.</li>\n                    <li>Share the repository link (or uploaded zip), plus any credentials/config notes required to run.</li>\n                    <li>If something is incomplete, state exactly what’s missing and why (don’t hide it).</li>\n                  </ul>\n                </div>\n\n                <p style=\"margin:18px 0 0 0; font-size:14px; line-height:1.6;\">\n                  Regards,<br />\n                  <strong>Team Pasovit</strong><br />\n                </p>\n              </td>\n            </tr>\n            <tr>\n            </td>\n            </tr>\n          </table>\n\n          <div style=\"font-size:11px; color:#9ca3af; margin-top:12px; max-width:640px; line-height:1.5;\">\n            Note: If links don’t open from your email client, copy-paste them into your browser.\n          </div>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "418cf499-3807-4fe4-b998-5adf1e472053",
+      "name": "Send email",
+      "webhookId": "a9df49c4-b602-466c-8962-0cfaf91d5747",
+      "credentials": {
+        "smtp": {
+          "id": "bJzQiT65Pwo6d8Xy",
+          "name": "jobs@pasovit.com"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Tally Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "4b67bc04-ca0d-4de4-9227-5384570485cf",
+  "activeVersionId": "4b67bc04-ca0d-4de4-9227-5384570485cf",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-08T05:47:02.159Z",
+      "createdAt": "2026-01-08T05:47:02.159Z",
+      "role": "workflow:owner",
+      "workflowId": "KzPqtsHe1zIlBKRIdXRWS",
+      "projectId": "gHNuyLUUbtf9MdIA"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-01-08T06:00:11.563Z",
+    "createdAt": "2026-01-08T06:00:01.966Z",
+    "versionId": "4b67bc04-ca0d-4de4-9227-5384570485cf",
+    "workflowId": "KzPqtsHe1zIlBKRIdXRWS",
+    "nodes": [
+      {
+        "parameters": {
+          "formId": "obbWRV"
+        },
+        "type": "n8n-nodes-tallyforms.tallyTrigger",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "d5915274-b5fe-46d9-bf7e-bc4753a563ab",
+        "name": "Tally Trigger",
+        "webhookId": "b4e44dd2-4f5a-4697-aa54-6d73f04131a9",
+        "credentials": {
+          "tallyApi": {
+            "id": "SvK9vBIQFtlHwW3K",
+            "name": "Tally account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "fromEmail": "jobs@pasovit.com",
+          "toEmail": "={{ $json.question_OG2ElK.value }}",
+          "subject": "Pasovit Technologies Developer Role - Technical Task",
+          "html": "=<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  </head>\n  <body style=\"margin:0; padding:0; background:#f6f7fb; font-family: Arial, Helvetica, sans-serif; color:#111827;\">\n    <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f6f7fb; padding:24px 12px;\">\n      <tr>\n        <td align=\"center\">\n          <table role=\"presentation\" width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:640px; width:100%; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;\">\n            <tr>\n              <td style=\"padding:20px 24px; background:#111827; color:#ffffff;\">\n                <div style=\"font-size:16px; font-weight:700; letter-spacing:0.2px;\">Pasovit Technologies - Technical Task</div>\n                <div style=\"font-size:13px; opacity:0.9; margin-top:6px;\">Backend Developer Assignment</div>\n              </td>\n            </tr>\n\n            <tr>\n              <td style=\"padding:24px;\">\n                <p style=\"margin:0 0 12px 0; font-size:14px; line-height:1.6;\">\n                  Hi <strong>{{ $json.question_oGPzD1.value }}</strong>,\n                </p>\n\n                <p style=\"margin:0 0 14px 0; font-size:14px; line-height:1.6;\">\n                  This email contains everything you need to complete and submit the technical task.\n                  Please follow the instructions in the Google Doc carefully and submit your work using the submission link below.\n                </p>\n\n                <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin:18px 0; border:1px solid #e5e7eb; border-radius:10px;\">\n                  <tr>\n                    <td style=\"padding:14px 16px; background:#f9fafb;\">\n                      <div style=\"font-size:13px; color:#374151; margin-bottom:4px;\">Deadline</div>\n                      <div style=\"font-size:16px; font-weight:700; color:#111827;\">\n                        12/01/2026 (end of day)\n                      </div>\n                      <div style=\"font-size:12px; color:#6b7280; margin-top:6px;\">\n                        If you anticipate any blockers that could impact the deadline, flag them early with a clear reason and mitigation plan.\n                      </div>\n                    </td>\n                  </tr>\n                </table>\n\n                <h3 style=\"margin:18px 0 10px 0; font-size:14px; color:#111827;\">1) Read the instructions (Google Doc)</h3>\n                <p style=\"margin:0 0 10px 0; font-size:14px; line-height:1.6;\">\n                  Use this document as the source of truth for the technical task instructions:\n                  <br />\n                  <a href=\"https://docs.google.com/document/d/12wYeySoeVmvR1mIvLjmnfOL1UaXgddOAfkJS3ibX4SM/edit?tab=t.0\"\n                     style=\"color:#2563eb; text-decoration:underline;\">\n                    Open the Technical Task Google Doc\n                  </a>\n                </p>\n\n                <h3 style=\"margin:18px 0 10px 0; font-size:14px; color:#111827;\">2) Submit your work (Tally Form)</h3>\n                <p style=\"margin:0 0 16px 0; font-size:14px; line-height:1.6;\">\n                  Submit your final work through this link:\n                  <br />\n                  <a href=\"https://tally.so/r/LZZlX2\" style=\"color:#2563eb; text-decoration:underline;\">\n                    Submit via Tally\n                  </a>\n                </p>\n\n                <div style=\"margin:18px 0; padding:14px 16px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px;\">\n                  <div style=\"font-size:13px; font-weight:700; margin-bottom:8px; color:#111827;\">Submission expectations (keep it clean)</div>\n                  <ul style=\"margin:0; padding-left:18px; font-size:13px; line-height:1.7; color:#374151;\">\n                    <li>Include a README with setup steps and how to run the project locally.</li>\n                    <li>Share the repository link (or uploaded zip), plus any credentials/config notes required to run.</li>\n                    <li>If something is incomplete, state exactly what’s missing and why (don’t hide it).</li>\n                  </ul>\n                </div>\n\n                <p style=\"margin:18px 0 0 0; font-size:14px; line-height:1.6;\">\n                  Regards,<br />\n                  <strong>Team Pasovit</strong><br />\n                </p>\n              </td>\n            </tr>\n            <tr>\n            </td>\n            </tr>\n          </table>\n\n          <div style=\"font-size:11px; color:#9ca3af; margin-top:12px; max-width:640px; line-height:1.5;\">\n            Note: If links don’t open from your email client, copy-paste them into your browser.\n          </div>\n        </td>\n      </tr>\n    </table>\n  </body>\n</html>\n",
+          "options": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.emailSend",
+        "typeVersion": 2.1,
+        "position": [
+          208,
+          0
+        ],
+        "id": "418cf499-3807-4fe4-b998-5adf1e472053",
+        "name": "Send email",
+        "webhookId": "a9df49c4-b602-466c-8962-0cfaf91d5747",
+        "credentials": {
+          "smtp": {
+            "id": "bJzQiT65Pwo6d8Xy",
+            "name": "jobs@pasovit.com"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Tally Trigger": {
+        "main": [
+          [
+            {
+              "node": "Send email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Aeontrix AI",
+    "name": "Version 4b67bc04",
+    "description": "",
+    "autosaved": false
+  },
+  "tags": [
+    {
+      "updatedAt": "2026-01-07T11:24:37.779Z",
+      "createdAt": "2026-01-07T11:24:37.779Z",
+      "id": "088iPKT5RBenhZCp",
+      "name": "Internal"
+    },
+    {
+      "updatedAt": "2026-01-07T11:24:39.071Z",
+      "createdAt": "2026-01-07T11:24:39.071Z",
+      "id": "0KJcY7aazNDTMiHj",
+      "name": "Aeontrix"
+    },
+    {
+      "updatedAt": "2026-01-08T06:05:29.957Z",
+      "createdAt": "2026-01-08T06:05:29.957Z",
+      "id": "vfWBf6F4ePPfwXXI",
+      "name": "Pasovit"
+    },
+    {
+      "updatedAt": "2026-01-08T06:04:24.959Z",
+      "createdAt": "2026-01-08T06:04:24.959Z",
+      "id": "WCCimUcOpt9oSzcv",
+      "name": "HR"
+    }
+  ]
+}
